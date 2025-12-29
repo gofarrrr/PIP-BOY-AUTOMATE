@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Optimization Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --terminal-green: #33ff00;
+        --terminal-amber: #ffb000;
+        --terminal-dim: #003300;
+        --terminal-bg: #0a0a0a;
+      }
+      body {
+        background-color: #000;
+        color: var(--terminal-green);
+        font-family: 'VT323', monospace;
+        overflow: hidden; /* Prevent scrolling outside the terminal wrapper */
+      }
+      
+      /* CRT Scanline Effect */
+      .scanlines {
+        background: linear-gradient(
+          to bottom,
+          rgba(255,255,255,0),
+          rgba(255,255,255,0) 50%,
+          rgba(0,0,0,0.2) 50%,
+          rgba(0,0,0,0.2)
+        );
+        background-size: 100% 4px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        z-index: 50;
+        animation: scanlineScroll 0.5s linear infinite; /* Subtle flicker */
+      }
+      
+      .crt-flicker {
+        animation: flicker 0.15s infinite;
+        pointer-events: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(18, 16, 16, 0.1);
+        z-index: 49;
+      }
+
+      @keyframes flicker {
+        0% { opacity: 0.97; }
+        50% { opacity: 0.99; }
+        100% { opacity: 0.97; }
+      }
+
+      /* Glowing Text */
+      .glow-text {
+        text-shadow: 0 0 5px var(--terminal-green), 0 0 10px var(--terminal-green);
+      }
+      .glow-text-amber {
+        color: var(--terminal-amber);
+        text-shadow: 0 0 5px var(--terminal-amber), 0 0 10px var(--terminal-amber);
+      }
+      .glow-text-red {
+        color: #ff3333;
+        text-shadow: 0 0 5px #ff3333, 0 0 10px #ff3333;
+      }
+      
+      /* SVG Styles */
+      .flow-path {
+        stroke-dasharray: 10;
+        animation: dash 60s linear infinite;
+      }
+      
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -1000;
+        }
+      }
+
+      /* Custom Scrollbar for Info Panel */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #001100; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #33ff00; 
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #ccffcc; 
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
