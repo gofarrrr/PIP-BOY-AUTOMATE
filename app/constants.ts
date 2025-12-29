@@ -42,7 +42,7 @@ export const NODES: FlowNode[] = [
     color: 'blue',
     description: {
       why: "EFFICIENCY AUDIT: Can a tool do the heavy lifting? A dishwasher augments dishwashing; a spellchecker augments writing. The question isn't 'automate or not'—it's 'what layer of help makes sense here?'",
-      evaluate: "Can you buy a tool, build a template, or use software to cut the time in half? Look for leverage. Start simple: can a dashboard, filter, or aggregator help? You don't need AI for everything.",
+      evaluate: "Can you buy a tool, build a template, or use software to cut the time in half? Look for leverage. Also consider: providers who specialize in this often have bulk pricing 10-100x better than your DIY cost. Don't build what you can buy cheaper.",
       read: "Mid-tier decision. Leads to hybrid workflows. Small tools often beat big systems."
     }
   },
@@ -121,7 +121,7 @@ export const NODES: FlowNode[] = [
     color: 'green',
     description: {
       why: "SYSTEM ONLINE: The holy grail. The machine works while you sleep. Perfect for data entry, payments, or cleaning floors. But reaching this outcome doesn't mean you're done—implementation can still fail.",
-      evaluate: "Final checklist: (1) Systems connected, data accessible? (2) Team ready for the change? (3) ROI realistic? If yes, delegate completely. If any answer is shaky, start with a pilot—automate one instance first, prove it works, then scale.",
+      evaluate: "Final checklist: (1) Systems connected, data accessible? (2) Team ready? (3) ROI realistic? (4) Build vs Buy—is there a provider who does this at scale with bulk API deals? They may cost less than your DIY solution, plus they handle maintenance.",
       read: "The ultimate goal for low-risk, high-frequency, boring tasks. Run a pilot before you commit."
     }
   },
