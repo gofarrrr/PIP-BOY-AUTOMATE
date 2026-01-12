@@ -106,8 +106,8 @@ export const NODES: FlowNode[] = [
     y: 135,
     color: 'blue',
     description: {
-      why: "HAZARD ASSESSMENT: If the system fails, is it a minor annoyance or a catastrophe? Don't let a robot hold the baby. Risk isn't just technical—it's organizational. Even low-risk automation fails if leadership doesn't support it or the team resists change.",
-      evaluate: "Three checks: (1) What's the worst-case if this breaks? (2) Does your organization have the appetite for this change? (3) Will the team embrace or sabotage it? Technical risk is obvious; organizational risk is silent and deadly.",
+      why: "HAZARD ASSESSMENT: If the system fails, is it a minor annoyance or a catastrophe? Don't let a robot hold the baby. Risk isn't just technical—it's organizational. Even low-risk automation fails if leadership doesn't support it or the team resists change. ACCURACY WARNING: 95% accuracy sounds amazing until you realize it means 1 in 20 failures. For payroll, invoices, or financial calculations—that's unacceptable.",
+      evaluate: "Four checks: (1) What's the worst-case if this breaks? (2) Does your organization have the appetite for this change? (3) Will the team embrace or sabotage it? (4) Does this need to be 100% accurate? If one wrong paycheck or invoice could create liability, use code—not AI. Technical risk is obvious; accuracy and organizational risk are silent and deadly.",
       read: "Final safety check before deployment. Green light means go."
     }
   },
