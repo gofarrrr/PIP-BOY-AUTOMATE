@@ -300,7 +300,7 @@ const InterviewMode: React.FC<InterviewModeProps> = ({ onClose, onRevealNodes })
             {/* Header */}
             <div className="p-4 border-b border-[#33ff00]/30 flex items-center justify-between">
                 <div className="text-[#33ff00] text-xl">
-                    🎙️ PIP-BOY INTERVIEW MODE
+                    [REC] PIP-BOY INTERVIEW MODE
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="text-[#33ff00]/50 text-sm">
@@ -330,7 +330,7 @@ const InterviewMode: React.FC<InterviewModeProps> = ({ onClose, onRevealNodes })
 
                         {!isGeminiConfigured() && (
                             <div className="text-yellow-400 text-center mb-4 p-4 border border-yellow-400/30 rounded">
-                                ⚠️ Gemini API key not configured.<br />
+                                [!] Gemini API key not configured.<br />
                                 Add VITE_GEMINI_API_KEY to your .env.local file.
                             </div>
                         )}

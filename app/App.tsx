@@ -138,7 +138,7 @@ function App() {
               : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
               }`}
           >
-            📋 TASK
+            TASK
           </button>
           <button
             onClick={() => handleModeChange('strategy')}
@@ -147,7 +147,7 @@ function App() {
               : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
               }`}
           >
-            🎯 STRATEGY
+            STRATEGY
           </button>
           <button
             onClick={() => handleModeChange('knowledge')}
@@ -156,7 +156,7 @@ function App() {
               : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
               }`}
           >
-            🧠 KNOWLEDGE
+            KNOWLEDGE
           </button>
           <button
             onClick={() => handleModeChange('mistakes')}
@@ -165,7 +165,7 @@ function App() {
               : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
               }`}
           >
-            ⚠️ MISTAKES
+            MISTAKES
           </button>
           <button
             onClick={() => handleModeChange('readiness')}
@@ -174,7 +174,7 @@ function App() {
               : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
               }`}
           >
-            🎮 READINESS
+            READINESS
           </button>
         </div>
 
@@ -250,7 +250,7 @@ function App() {
           onClick={handleStartInterview}
           className="absolute bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-3 bg-[#33ff00] text-black font-vt323 text-lg rounded-lg hover:bg-[#33ff00]/80 transition-all shadow-lg shadow-[#33ff00]/20 hover:shadow-[#33ff00]/40"
         >
-          <span className="text-xl">🎙️</span>
+          <span className="text-xl">[MIC]</span>
           <span className="hidden md:inline">START VOICE INTERVIEW</span>
           <span className="md:hidden">INTERVIEW</span>
         </button>

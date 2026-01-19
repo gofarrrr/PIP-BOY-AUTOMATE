@@ -49,7 +49,7 @@ const InterviewTranscript: React.FC<InterviewTranscriptProps> = ({
         >
             {entries.length === 0 && (
                 <div className="text-[#33ff00]/60 text-center py-8">
-                    <div className="text-lg mb-2">🎙️ Speak to begin the conversation...</div>
+                    <div className="text-lg mb-2">[MIC] Speak to begin the conversation...</div>
                     <div className="text-sm text-[#33ff00]/40">
                         The AI will respond after you pause speaking
                     </div>

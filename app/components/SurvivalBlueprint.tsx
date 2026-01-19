@@ -75,7 +75,7 @@ const OUTCOME_BLUEPRINTS: Record<string, {
         cta: 'Need help preventing talent drain and internal stagnation?',
     },
     death_trap: {
-        title: '⚠️ THE DEATH TRAP',
+        title: '[!] THE DEATH TRAP',
         severity: 'red',
         diagnosis: 'You are STUCK IN THE MIDDLE with no viable path. You can\'t get lean. You can\'t move up. You\'re selling commoditized work in a contestable market. This is the squeeze that kills mid-tier firms.',
         actions: [
@@ -122,7 +122,7 @@ const SurvivalBlueprint: React.FC<SurvivalBlueprintProps> = ({
                             onClick={onClose}
                             className="hover:bg-white/10 px-3 py-1 rounded text-2xl"
                         >
-                            ✕
+                            [X]
                         </button>
                     </div>
 
@@ -167,13 +167,13 @@ const SurvivalBlueprint: React.FC<SurvivalBlueprintProps> = ({
                                 href="#contact"
                                 className={`flex-1 text-center px-6 py-3 ${severityTextColors[blueprint.severity]} border-2 border-current rounded-lg hover:bg-white/10 transition-all text-lg font-bold`}
                             >
-                                📞 Book a Genetic Audit (15 min)
+                                [CALL] Book a Genetic Audit (15 min)
                             </a>
                             <button
                                 onClick={onReset}
                                 className="px-6 py-3 text-[#33ff00]/60 border border-[#33ff00]/30 rounded-lg hover:bg-white/5 transition-all text-lg"
                             >
-                                🔄 Run New Diagnostic
+                                [RESET] Run New Diagnostic
                             </button>
                         </div>
                     </div>

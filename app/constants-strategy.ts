@@ -167,7 +167,7 @@ export const STRATEGY_NODES: FlowNode[] = [
     },
     {
         id: 'death_trap',
-        label: '⚠️ DEATH\nTRAP',
+        label: '[!] DEATH\nTRAP',
         type: 'outcome',
         x: 35,
         y: 145,
