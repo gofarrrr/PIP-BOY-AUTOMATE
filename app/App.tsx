@@ -19,7 +19,7 @@ function App() {
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [isInterviewMode, setIsInterviewMode] = useState(false);
   const [revealedNodes, setRevealedNodes] = useState<GraphNodeId[]>([]);
-  const [chartMode, setChartMode] = useState<ChartMode>('task');
+  const [chartMode, setChartMode] = useState<ChartMode>('strategy');
   const [showBlueprint, setShowBlueprint] = useState(false);
 
   // Diagnostic path tracking for Strategy mode
@@ -132,15 +132,6 @@ function App() {
         {/* Chart Mode Toggle */}
         <div className="flex items-center gap-1 bg-[#0a0a0a] border border-[#33ff00]/50 rounded-lg p-1">
           <button
-            onClick={() => handleModeChange('task')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'task'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            TASK
-          </button>
-          <button
             onClick={() => handleModeChange('strategy')}
             className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'strategy'
               ? 'bg-[#33ff00] text-black'
@@ -148,6 +139,15 @@ function App() {
               }`}
           >
             STRATEGY
+          </button>
+          <button
+            onClick={() => handleModeChange('task')}
+            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'task'
+              ? 'bg-[#33ff00] text-black'
+              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
+              }`}
+          >
+            TASK
           </button>
           <button
             onClick={() => handleModeChange('knowledge')}
