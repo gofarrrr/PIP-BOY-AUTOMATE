@@ -11,6 +11,10 @@ export interface FlowNode {
     why: string;
     evaluate: string;
     read: string;
+    tactic?: {
+      label: string;
+      content: string;
+    };
   };
 }
 
@@ -19,7 +23,7 @@ export interface FlowEdge {
   from: string;
   to: string;
   label?: string; // "Yes" or "No"
-  pathType?: 'curved' | 'straight' | 'corner'; 
+  pathType?: 'curved' | 'straight' | 'corner';
   controlPoints?: number[][]; // Custom control points for complex curves
   labelOffset?: { x: number; y: number }; // Manual fine-tuning for label position (pixels/10)
   labelPosition?: number; // 0 to 1, position along the path. Default 0.5
@@ -27,9 +31,13 @@ export interface FlowEdge {
     why: string;
     evaluate: string;
     read: string;
+    tactic?: {
+      label: string;
+      content: string;
+    };
   };
 }
 
-export type SelectedItem = 
+export type SelectedItem =
   | { type: 'node'; data: FlowNode }
   | { type: 'edge'; data: FlowEdge };

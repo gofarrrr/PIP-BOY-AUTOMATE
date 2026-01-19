@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SelectedItem, FlowNode, FlowEdge } from '../types';
+import CopyableTactic from './CopyableTactic';
 
 interface InfoTerminalProps {
   selectedItem: SelectedItem | null;
@@ -99,6 +100,16 @@ const InfoTerminal: React.FC<InfoTerminalProps> = ({
           <div>
             <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.read}</h3>
             <p className="leading-6 text-2xl opacity-90">{displayedText.read}</p>
+          </div>
+        )}
+
+        {/* Tactical Prompt / Toolbox */}
+        {description.tactic && displayedText.read.length === description.read.length && (
+          <div className="animate-in fade-in duration-700">
+            <CopyableTactic
+              label={description.tactic.label}
+              content={description.tactic.content}
+            />
           </div>
         )}
 

@@ -19,6 +19,7 @@ interface UseZoomReturn {
     zoomIn: () => void;
     zoomOut: () => void;
     zoomToNode: (node: FlowNode) => void;
+    zoomToArea: (target: ViewBox, duration?: number) => void;
     resetZoom: () => void;
     handleWheel: (e: WheelEvent) => void;
     isAnimating: boolean;
@@ -147,6 +148,24 @@ export function useZoom(): UseZoomReturn {
         animateToViewBox(targetViewBox, 500); // Slightly slower for dramatic effect
     }, [animateToViewBox, clampViewBox]);
 
+    const zoomToArea = useCallback((target: ViewBox, duration = 500) => {
+        const targetViewBox = clampViewBox({
+            x: target.x * 10,
+            y: target.y * 10,
+            width: target.width * 10,
+            height: target.height * 10,
+        });
+
+        // Calculate appropriate zoom level based on width
+        const targetWidth = target.width * 10;
+        const closestLevel = ZOOM_LEVELS.reduce((prev, curr, idx) => {
+            return Math.abs(curr - targetWidth) < Math.abs(ZOOM_LEVELS[prev] - targetWidth) ? idx : prev;
+        }, 0);
+
+        setZoomLevel(closestLevel);
+        animateToViewBox(targetViewBox, duration);
+    }, [animateToViewBox, clampViewBox]);
+
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
 
@@ -164,6 +183,7 @@ export function useZoom(): UseZoomReturn {
         zoomIn,
         zoomOut,
         zoomToNode,
+        zoomToArea,
         resetZoom,
         handleWheel,
         isAnimating,

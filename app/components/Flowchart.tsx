@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SelectedItem, FlowNode, FlowEdge } from '../types';
 import GraphNode from './GraphNode';
 import GraphEdge from './GraphEdge';
@@ -14,6 +14,7 @@ interface FlowchartProps {
   visitedNodes?: string[];
   visitedEdges?: string[];
   currentNodeId?: string | null;
+  zoomArea?: { x: number; y: number; width: number; height: number } | null;
 }
 
 const Flowchart: React.FC<FlowchartProps> = ({
@@ -23,7 +24,8 @@ const Flowchart: React.FC<FlowchartProps> = ({
   selectedItem,
   visitedNodes = [],
   visitedEdges = [],
-  currentNodeId = null
+  currentNodeId = null,
+  zoomArea = null
 }) => {
   const {
     viewBox,
@@ -31,9 +33,17 @@ const Flowchart: React.FC<FlowchartProps> = ({
     zoomIn,
     zoomOut,
     zoomToNode,
+    zoomToArea,
     resetZoom,
     handleWheel,
   } = useZoom();
+
+  // Handle auto-zoom from props
+  useEffect(() => {
+    if (zoomArea) {
+      zoomToArea(zoomArea);
+    }
+  }, [zoomArea, zoomToArea]);
 
   const handleNodeClick = (node: FlowNode) => {
     onSelect({ type: 'node', data: node });

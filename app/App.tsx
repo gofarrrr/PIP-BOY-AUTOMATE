@@ -16,8 +16,10 @@ import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
 import { useDiagnosticPath } from './hooks/useDiagnosticPath';
 import { useMistakesAudit } from './hooks/useMistakesAudit';
 import { useTaskAssessment } from './hooks/useTaskAssessment';
+import { useKnowledgePlaybook } from './hooks/useKnowledgePlaybook';
 import TaskNameOverlay from './components/TaskNameOverlay';
 import TaskVerdict from './components/TaskVerdict';
+import KnowledgeLifecycleHUD from './components/KnowledgeLifecycleHUD';
 
 type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
 
@@ -73,6 +75,21 @@ function App() {
       }
     }
   }, [chartMode, taskMode, taskVisitedNodes, selectedItem]);
+
+  // Knowledge Playbook state
+  const {
+    activePhase,
+    selectPhase,
+    resetPlaybook,
+    phases: knowledgePhases,
+  } = useKnowledgePlaybook();
+
+  // Zoom to phase cluster when selected
+  useEffect(() => {
+    // We need a ref to the zoomToViewBox or similar if we want to zoom from here.
+    // However, the Flowchart component currently manages its own zoom.
+    // We can add a "viewBox" prop to Flowchart or a trigger.
+  }, [activePhase]);
 
   // Get the appropriate nodes/edges based on mode
   const getNodesAndEdges = () => {
@@ -327,6 +344,7 @@ function App() {
             return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
           }).filter(id => id !== '')}
           currentNodeId={taskVisitedNodes[taskVisitedNodes.length - 1]}
+          zoomArea={chartMode === 'knowledge' && activePhase ? knowledgePhases.find(p => p.id === activePhase)?.zoomTarget : null}
         />
       </main>
 
@@ -338,6 +356,15 @@ function App() {
         isAssessmentMode={chartMode === 'task' && taskMode === 'assess'}
         onDecision={handleTaskDecision}
       />
+
+      {/* Knowledge Lifecycle HUD */}
+      {chartMode === 'knowledge' && (
+        <KnowledgeLifecycleHUD
+          activePhase={activePhase}
+          phases={knowledgePhases}
+          onPhaseSelect={selectPhase}
+        />
+      )}
 
       {/* Task Assessment Overlay */}
       {chartMode === 'task' && taskMode === 'assess' && !taskName && (

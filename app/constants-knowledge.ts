@@ -104,7 +104,11 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "TRANSCRIPT EXTRACTION: You have recordings—use them. Pass transcripts to an AI with this prompt: 'Here's a training recording transcript. Create a detailed SOP that a new employee could follow step-by-step, including edge cases and decision points mentioned.'",
             evaluate: "Pro tip: Combine transcript + interview. Give AI the transcript first: 'Here's a training. Interview me to fill gaps—ask about nuances, edge cases, and anything unclear.' This yields the highest quality SOPs.",
-            read: "Transcripts are starting points. Layer in interviews for completeness."
+            read: "Transcripts are starting points. Layer in interviews for completeness.",
+            tactic: {
+                label: "The Transcript Synthesis Prompt",
+                content: "Act as an Expert Systems Engineer. I am going to provide you with a raw transcript from a training session. Your goal is to extract the 'Genetic Knowledge' from this text and package it into a high-fidelity SOP.\n\nRequirements:\n1. Identify the 'Core Workflow'.\n2. List all 'Decision Branching' (if/then logic).\n3. Extract 'Expert Nuance' (tips, shortcuts, edge cases).\n4. Format as a Step-by-Step checklist.\n\nTranscript follows:\n[PASTE TRANSCRIPT HERE]"
+            }
         }
     },
     {
@@ -117,7 +121,11 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "REVERSE AI INTERVIEW: The AI acts as a new employee interviewing the expert. Key prompt: 'Act as a new employee. Interview me to understand how I do [X]. Ask one question at a time—each answer informs your next question. At the end, create a detailed SOP.'",
             evaluate: "Critical success factors: (1) One question at a time—prevents expert from forgetting details. (2) AI probes for edge cases. (3) AI asks 'why' not just 'what'. (4) Final output is a complete SOP.",
-            read: "The best extraction method when experts are available. 30-60 minutes yields gold."
+            read: "The best extraction method when experts are available. 30-60 minutes yields gold.",
+            tactic: {
+                label: "Reverse Interview Prompt",
+                content: "I want to extract my knowledge about [INSERT TOPIC] so that we can build an AI Agent to replace/augment me.\n\nYour Role: Act as a high-performing new hire who is hungry to learn, but also a systems analyst. \n\nTask: Interview me to understand this workflow completely.\n\nRules:\n1. Ask ONE question at a time.\n2. Wait for my answer before asking the next.\n3. Drill down into 'Judgment Calls' (e.g., 'How do you decide between X and Y?').\n4. After 10 questions or when I say 'STOP', synthesize everything into a Master SOP."
+            }
         }
     },
     {
@@ -145,7 +153,11 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "LEVEL 1 - PROMPT LIBRARY: A shared folder (Google Drive, Notion, etc.) with proven prompts. Each prompt includes: (1) The prompt itself. (2) A use case study showing benefit. (3) A templated version others can customize. Highest user involvement, but easiest to start.",
             evaluate: "Setup: Create shared folder → Add prompts as templates → Require submissions include 'why it works' → Review and curate monthly. This trains AI fluency while distributing knowledge.",
-            read: "Start here if team is new to AI. Graduate to Projects/Gems as fluency grows."
+            read: "Start here if team is new to AI. Graduate to Projects/Gems as fluency grows.",
+            tactic: {
+                label: "Prompt Documentation Template",
+                content: "# PROMPT_ID: [e.g. CUSTOMER_SERVICE_V1]\n## GOAL: [What does this prompt solve?]\n## SUCCESS_METRIC: [How do we know it worked?]\n\n## THE_PROMPT:\n```\n[INSERT PROMPT HERE]\n```\n\n## INPUT_REQUIREMENTS:\n- [Source File A]\n- [Context B]"
+            }
         }
     },
     {
