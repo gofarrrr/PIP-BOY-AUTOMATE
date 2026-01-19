@@ -4,6 +4,8 @@ import InfoTerminal from './components/InfoTerminal';
 import InterviewMode from './components/InterviewMode';
 import BlueprintGenerator from './components/BlueprintGenerator';
 import SurvivalBlueprint from './components/SurvivalBlueprint';
+import MistakesAuditPanel from './components/MistakesAuditPanel';
+import MistakesAuditReport from './components/MistakesAuditReport';
 import { SelectedItem, FlowEdge } from './types';
 import type { GraphNodeId } from './types/interview';
 import { NODES, EDGES } from './constants';
@@ -12,6 +14,7 @@ import { KNOWLEDGE_NODES, KNOWLEDGE_EDGES } from './constants-knowledge';
 import { MISTAKES_NODES, MISTAKES_EDGES } from './constants-mistakes';
 import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
 import { useDiagnosticPath } from './hooks/useDiagnosticPath';
+import { useMistakesAudit } from './hooks/useMistakesAudit';
 
 type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
 
@@ -32,6 +35,16 @@ function App() {
     resetDiagnostic,
     getProgress,
   } = useDiagnosticPath();
+
+  // Mistakes Audit state
+  const {
+    responses: auditResponses,
+    setResponse: setAuditResponse,
+    getScore: getAuditScore,
+    resetAudit,
+    isComplete: auditComplete,
+  } = useMistakesAudit();
+  const [showAuditReport, setShowAuditReport] = useState(false);
 
   // Get the appropriate nodes/edges based on mode
   const getNodesAndEdges = () => {
@@ -159,15 +172,6 @@ function App() {
             KNOWLEDGE
           </button>
           <button
-            onClick={() => handleModeChange('mistakes')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'mistakes'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            MISTAKES
-          </button>
-          <button
             onClick={() => handleModeChange('readiness')}
             className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'readiness'
               ? 'bg-[#33ff00] text-black'
@@ -175,6 +179,15 @@ function App() {
               }`}
           >
             READINESS
+          </button>
+          <button
+            onClick={() => handleModeChange('mistakes')}
+            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'mistakes'
+              ? 'bg-[#33ff00] text-black'
+              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
+              }`}
+          >
+            MISTAKES
           </button>
         </div>
 
@@ -196,7 +209,11 @@ function App() {
                 : '> AI SURVIVAL DIAGNOSTIC: Is your business built for the Bits or the Atoms?'
           )}
           {chartMode === 'knowledge' && '> KNOWLEDGE DISTRIBUTION: Extract, Package, Distribute expert knowledge'}
-          {chartMode === 'mistakes' && '> AI ADOPTION MISTAKES: Diagnose the 7 common anti-patterns'}
+          {chartMode === 'mistakes' && (
+            auditComplete
+              ? `> AUDIT COMPLETE: ${getAuditScore().issues} issue${getAuditScore().issues !== 1 ? 's' : ''} detected. View your report.`
+              : '> AI ADOPTION HEALTH AUDIT: Are you making these 7 mistakes?'
+          )}
           {chartMode === 'readiness' && '> AGENT READINESS: Identify your archetype and maturity level'}
         </span>
         {chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete) && (
@@ -241,6 +258,29 @@ function App() {
           pathSummary={getPathSummary()}
           onClose={handleCloseBlueprint}
           onReset={handleResetDiagnostic}
+        />
+      )}
+
+      {/* Mistakes Audit Panel - Mistakes Mode */}
+      {chartMode === 'mistakes' && (
+        <MistakesAuditPanel
+          responses={auditResponses}
+          onResponse={setAuditResponse}
+          score={getAuditScore()}
+          onViewReport={() => setShowAuditReport(true)}
+          onReset={resetAudit}
+        />
+      )}
+
+      {/* Mistakes Audit Report Modal */}
+      {showAuditReport && (
+        <MistakesAuditReport
+          score={getAuditScore()}
+          onClose={() => setShowAuditReport(false)}
+          onReset={() => {
+            resetAudit();
+            setShowAuditReport(false);
+          }}
         />
       )}
 
