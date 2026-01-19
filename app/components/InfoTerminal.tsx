@@ -5,9 +5,17 @@ interface InfoTerminalProps {
   selectedItem: SelectedItem | null;
   onClose: () => void;
   isDiagnosticMode?: boolean;
+  onDecision?: (choice: 'yes' | 'no') => void;
+  isAssessmentMode?: boolean;
 }
 
-const InfoTerminal: React.FC<InfoTerminalProps> = ({ selectedItem, onClose, isDiagnosticMode = false }) => {
+const InfoTerminal: React.FC<InfoTerminalProps> = ({
+  selectedItem,
+  onClose,
+  isDiagnosticMode = false,
+  onDecision,
+  isAssessmentMode = false
+}) => {
   const [displayedText, setDisplayedText] = useState({ why: '', evaluate: '', read: '' });
 
   // Section headers - different for diagnostic mode
@@ -91,6 +99,24 @@ const InfoTerminal: React.FC<InfoTerminalProps> = ({ selectedItem, onClose, isDi
           <div>
             <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.read}</h3>
             <p className="leading-6 text-2xl opacity-90">{displayedText.read}</p>
+          </div>
+        )}
+
+        {/* Assessment Decisions */}
+        {isAssessmentMode && onDecision && selectedItem?.type === 'node' && (selectedItem.data as FlowNode).type === 'decision' && displayedText.read.length === description.read.length && (
+          <div className="flex gap-4 pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <button
+              onClick={() => onDecision('yes')}
+              className="flex-1 bg-[#33ff00] text-black font-bold py-3 text-2xl hover:bg-[#33ff00]/80 transition-all border-2 border-[#33ff00]"
+            >
+              [YES]
+            </button>
+            <button
+              onClick={() => onDecision('no')}
+              className="flex-1 border-2 border-[#33ff00] text-[#33ff00] font-bold py-3 text-2xl hover:bg-[#33ff00]/20 transition-all"
+            >
+              [NO]
+            </button>
           </div>
         )}
       </div>

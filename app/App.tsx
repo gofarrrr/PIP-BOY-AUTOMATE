@@ -15,6 +15,9 @@ import { MISTAKES_NODES, MISTAKES_EDGES } from './constants-mistakes';
 import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
 import { useDiagnosticPath } from './hooks/useDiagnosticPath';
 import { useMistakesAudit } from './hooks/useMistakesAudit';
+import { useTaskAssessment } from './hooks/useTaskAssessment';
+import TaskNameOverlay from './components/TaskNameOverlay';
+import TaskVerdict from './components/TaskVerdict';
 
 type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
 
@@ -45,6 +48,31 @@ function App() {
     isComplete: auditComplete,
   } = useMistakesAudit();
   const [showAuditReport, setShowAuditReport] = useState(false);
+
+  // Task Assessment state
+  const {
+    mode: taskMode,
+    taskName,
+    setMode: setTaskAssessmentMode,
+    startAssessment,
+    recordDecision: recordTaskDecision,
+    resetAssessment: resetTaskAssessment,
+    isNodeVisited,
+    isCurrentNode,
+    isComplete: taskAssessmentComplete,
+    visitedNodes: taskVisitedNodes,
+  } = useTaskAssessment();
+
+  // Auto-select current node in assessment mode
+  useEffect(() => {
+    if (chartMode === 'task' && taskMode === 'assess' && taskVisitedNodes.length > 0) {
+      const currentNodeId = taskVisitedNodes[taskVisitedNodes.length - 1];
+      const node = NODES.find(n => n.id === currentNodeId);
+      if (node && (!selectedItem || selectedItem.data.id !== currentNodeId)) {
+        setSelectedItem({ type: 'node', data: node });
+      }
+    }
+  }, [chartMode, taskMode, taskVisitedNodes, selectedItem]);
 
   // Get the appropriate nodes/edges based on mode
   const getNodesAndEdges = () => {
@@ -92,7 +120,41 @@ function App() {
   };
 
   const handleCloseTerminal = () => {
+    // In assessment mode, closing terminal might be confusing if they haven't finished.
+    // We'll allow it but they have to click the node again to resume.
     setSelectedItem(null);
+  };
+
+  const handleTaskDecision = (choice: 'yes' | 'no') => {
+    if (selectedItem?.type === 'node') {
+      const currentNodeId = selectedItem.data.id;
+      const choiceLabel = choice === 'yes' ? 'Yes' : 'No';
+      const edge = EDGES.find(e => e.from === currentNodeId && e.label === choiceLabel);
+
+      if (edge) {
+        recordTaskDecision(currentNodeId, choice, edge.to);
+        const nextNode = NODES.find(n => n.id === edge.to);
+        if (nextNode) {
+          setSelectedItem({ type: 'node', data: nextNode });
+        }
+      }
+    }
+  };
+
+  const handleStartTaskAssessment = (name: string) => {
+    startAssessment(name);
+    const firstNode = NODES.find(n => n.id === 'often');
+    if (firstNode) {
+      setSelectedItem({ type: 'node', data: firstNode });
+    }
+  };
+
+  const getPathOutcome = (visitedNodes: string[]): 'automate' | 'augment' | 'diy' => {
+    const lastNodeId = visitedNodes[visitedNodes.length - 1];
+    if (lastNodeId === 'automate' || lastNodeId === 'augment' || lastNodeId === 'diy') {
+      return lastNodeId as 'automate' | 'augment' | 'diy';
+    }
+    return 'augment'; // Fallback
   };
 
   const handleStartInterview = () => {
@@ -200,7 +262,33 @@ function App() {
       {/* Chart Mode Subtitle */}
       <div className="relative z-30 px-6 py-1 bg-[#001100]/40 border-b border-[#33ff00]/20 flex justify-between items-center">
         <span className="text-[#33ff00]/60 font-vt323 text-sm">
-          {chartMode === 'task' && '> AUTOMATION ASSESSMENT: Should I automate this task?'}
+          {chartMode === 'task' && (
+            <div className="flex items-center gap-4">
+              <span className="opacity-60">{' > '}TASK AUTOMATOR:</span>
+              <div className="flex bg-black/40 border border-[#33ff00]/30 rounded overflow-hidden">
+                <button
+                  onClick={() => {
+                    setTaskAssessmentMode('learn');
+                    resetTaskAssessment();
+                  }}
+                  className={`px-3 py-0.5 text-xs transition-all ${taskMode === 'learn' ? 'bg-[#33ff00] text-black' : 'text-[#33ff00]/60 hover:bg-[#33ff00]/10'}`}
+                >
+                  LEARN
+                </button>
+                <button
+                  onClick={() => setTaskAssessmentMode('assess')}
+                  className={`px-3 py-0.5 text-xs transition-all ${taskMode === 'assess' ? 'bg-[#33ff00] text-black' : 'text-[#33ff00]/60 hover:bg-[#33ff00]/10'}`}
+                >
+                  ASSESS
+                </button>
+              </div>
+              {taskMode === 'assess' && taskName && (
+                <span className="text-[#33ff00] animate-pulse ml-2 text-xs">
+                  [ EVALUATING: {taskName.toUpperCase()} ]
+                </span>
+              )}
+            </div>
+          )}
           {chartMode === 'strategy' && (
             diagnosticInProgress
               ? `> DIAGNOSTIC IN PROGRESS: ${getProgress()}% complete. Click nodes to continue...`
@@ -233,6 +321,12 @@ function App() {
           edges={currentEdges}
           onSelect={handleSelect}
           selectedItem={selectedItem}
+          visitedNodes={taskVisitedNodes}
+          visitedEdges={taskVisitedNodes.slice(0, -1).map((id, i) => {
+            const nextId = taskVisitedNodes[i + 1];
+            return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
+          }).filter(id => id !== '')}
+          currentNodeId={taskVisitedNodes[taskVisitedNodes.length - 1]}
         />
       </main>
 
@@ -241,7 +335,26 @@ function App() {
         selectedItem={selectedItem}
         onClose={handleCloseTerminal}
         isDiagnosticMode={chartMode === 'strategy'}
+        isAssessmentMode={chartMode === 'task' && taskMode === 'assess'}
+        onDecision={handleTaskDecision}
       />
+
+      {/* Task Assessment Overlay */}
+      {chartMode === 'task' && taskMode === 'assess' && !taskName && (
+        <TaskNameOverlay
+          onStart={handleStartTaskAssessment}
+          onCancel={() => setTaskAssessmentMode('learn')}
+        />
+      )}
+
+      {/* Task Verdict - Assessment Complete */}
+      {chartMode === 'task' && taskMode === 'assess' && taskAssessmentComplete && (
+        <TaskVerdict
+          taskName={taskName}
+          outcome={getPathOutcome(taskVisitedNodes)}
+          onReset={resetTaskAssessment}
+        />
+      )}
 
       {/* Blueprint Generator - Strategy Mode */}
       {chartMode === 'strategy' && (

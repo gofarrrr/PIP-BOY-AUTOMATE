@@ -11,9 +11,20 @@ interface FlowchartProps {
   onSelect: (item: SelectedItem) => void;
   selectedItem: SelectedItem | null;
   onZoomToNode?: (node: FlowNode) => void;
+  visitedNodes?: string[];
+  visitedEdges?: string[];
+  currentNodeId?: string | null;
 }
 
-const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedItem }) => {
+const Flowchart: React.FC<FlowchartProps> = ({
+  nodes,
+  edges,
+  onSelect,
+  selectedItem,
+  visitedNodes = [],
+  visitedEdges = [],
+  currentNodeId = null
+}) => {
   const {
     viewBox,
     zoomLevel,
@@ -70,6 +81,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedI
           const to = nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
+          const isVisited = visitedEdges.includes(edge.id);
           return (
             <GraphEdge
               key={`path-${edge.id}`}
@@ -78,6 +90,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedI
               toNode={to}
               onClick={(e) => onSelect({ type: 'edge', data: e })}
               isSelected={isSelected}
+              isVisited={isVisited}
               renderPart="path"
             />
           );
@@ -86,12 +99,15 @@ const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedI
         {/* 2. Nodes Layer */}
         {nodes.map(node => {
           const isSelected = selectedItem?.type === 'node' && selectedItem.data.id === node.id;
+          const isVisited = visitedNodes.includes(node.id);
+          const isCurrent = currentNodeId === node.id;
           return (
             <GraphNode
               key={node.id}
               node={node}
               onClick={handleNodeClick}
-              isSelected={isSelected}
+              isSelected={isSelected || isCurrent}
+              isVisited={isVisited && !isCurrent}
             />
           );
         })}
@@ -102,6 +118,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedI
           const to = nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
+          const isVisited = visitedEdges.includes(edge.id);
           return (
             <GraphEdge
               key={`label-${edge.id}`}
@@ -110,6 +127,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedI
               toNode={to}
               onClick={(e) => onSelect({ type: 'edge', data: e })}
               isSelected={isSelected}
+              isVisited={isVisited}
               renderPart="label"
             />
           );

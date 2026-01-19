@@ -5,9 +5,10 @@ interface GraphNodeProps {
   node: FlowNode;
   onClick: (node: FlowNode) => void;
   isSelected: boolean;
+  isVisited?: boolean;
 }
 
-const GraphNode: React.FC<GraphNodeProps> = ({ node, onClick, isSelected }) => {
+const GraphNode: React.FC<GraphNodeProps> = ({ node, onClick, isSelected, isVisited = false }) => {
   // Larger sizes for better readability
   const width = node.type === 'decision' ? 200 : 220;
   const height = node.type === 'decision' ? 200 : 90;
@@ -21,10 +22,10 @@ const GraphNode: React.FC<GraphNodeProps> = ({ node, onClick, isSelected }) => {
   };
 
   const baseColor = colors[node.color || 'blue'];
-  const strokeColor = isSelected ? '#ffffff' : baseColor;
-  const fillColor = isSelected ? `${baseColor}44` : '#0a0a0a';
-  const shadow = isSelected ? `drop-shadow(0 0 15px ${baseColor})` : `drop-shadow(0 0 5px ${baseColor}66)`;
-  const strokeWidth = isSelected ? 4 : 3;
+  const strokeColor = isSelected ? '#ffffff' : (isVisited ? '#33ff00' : baseColor);
+  const fillColor = isSelected ? `${baseColor}44` : (isVisited ? `${baseColor}22` : '#0a0a0a');
+  const shadow = isSelected ? `drop-shadow(0 0 15px ${baseColor})` : (isVisited ? `drop-shadow(0 0 10px ${baseColor}44)` : `drop-shadow(0 0 5px ${baseColor}66)`);
+  const strokeWidth = isSelected ? 4 : (isVisited ? 3 : 2);
 
   // Parse label for line breaks (handles \\n notation)
   const labelLines = node.label.split(/\\n/);
