@@ -1,36 +1,30 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Flowchart from './components/Flowchart';
 import InfoTerminal from './components/InfoTerminal';
-import InterviewMode from './components/InterviewMode';
+// WIP: Voice Interview feature - temporarily disabled
+// import InterviewMode from './components/InterviewMode';
 import BlueprintGenerator from './components/BlueprintGenerator';
 import SurvivalBlueprint from './components/SurvivalBlueprint';
-import MistakesAuditPanel from './components/MistakesAuditPanel';
-import MistakesAuditReport from './components/MistakesAuditReport';
 import { SelectedItem, FlowEdge } from './types';
 import type { GraphNodeId } from './types/interview';
 import { NODES, EDGES } from './constants';
 import { STRATEGY_NODES, STRATEGY_EDGES } from './constants-strategy';
 import { KNOWLEDGE_NODES, KNOWLEDGE_EDGES } from './constants-knowledge';
-import { MISTAKES_NODES, MISTAKES_EDGES } from './constants-mistakes';
-import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
 import { useDiagnosticPath } from './hooks/useDiagnosticPath';
-import { useMistakesAudit, MISTAKE_QUESTIONS, MistakeId } from './hooks/useMistakesAudit';
 import { useTaskAssessment } from './hooks/useTaskAssessment';
 import { useKnowledgePlaybook } from './hooks/useKnowledgePlaybook';
-import { useReadinessDiagnostic } from './hooks/useReadinessDiagnostic';
 import { useProgressiveReveal } from './hooks/useProgressiveReveal';
 import TaskNameOverlay from './components/TaskNameOverlay';
 import TaskVerdict from './components/TaskVerdict';
 import KnowledgeLifecycleHUD from './components/KnowledgeLifecycleHUD';
-import ReadinessReportGenerator from './components/ReadinessReportGenerator';
-import ReadinessReport from './components/ReadinessReport';
 
-type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
+type ChartMode = 'task' | 'strategy' | 'knowledge';
 
 function App() {
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  const [isInterviewMode, setIsInterviewMode] = useState(false);
-  const [revealedNodes, setRevealedNodes] = useState<GraphNodeId[]>([]);
+  // WIP: Voice Interview state - temporarily disabled
+  // const [isInterviewMode, setIsInterviewMode] = useState(false);
+  // const [revealedNodes, setRevealedNodes] = useState<GraphNodeId[]>([]);
   const [chartMode, setChartMode] = useState<ChartMode>('strategy');
   const [showBlueprint, setShowBlueprint] = useState(false);
 
@@ -45,37 +39,6 @@ function App() {
     getProgress,
     state: strategyState,
   } = useDiagnosticPath();
-
-  // Mistakes Audit state
-  const {
-    responses: auditResponses,
-    setResponse: setAuditResponse,
-    getScore: getAuditScore,
-    resetAudit,
-    isComplete: auditComplete,
-  } = useMistakesAudit();
-  const [showAuditReport, setShowAuditReport] = useState(false);
-
-  // Compute node highlights for MISTAKES mode based on audit responses
-  const mistakesNodeHighlights = React.useMemo(() => {
-    if (chartMode !== 'mistakes') return {};
-
-    const highlights: Record<string, 'issue' | 'healthy' | 'solution'> = {};
-
-    MISTAKE_QUESTIONS.forEach((q) => {
-      const response = auditResponses[q.id as MistakeId];
-      if (response === false) {
-        // Issue: mark question node as issue, solution node as solution
-        highlights[q.id] = 'issue';
-        highlights[q.solutionId] = 'solution';
-      } else if (response === true) {
-        // Healthy: mark question node as healthy
-        highlights[q.id] = 'healthy';
-      }
-    });
-
-    return highlights;
-  }, [chartMode, auditResponses]);
 
   // Task Assessment state
   const {
@@ -110,19 +73,6 @@ function App() {
     phases: knowledgePhases,
   } = useKnowledgePlaybook();
 
-  // Readiness Diagnostic state
-  const {
-    recordNodeVisit: recordReadinessVisit,
-    recordDecision: recordReadinessDecision,
-    getPathSummary: getReadinessSummary,
-    isComplete: readinessComplete,
-    isInProgress: readinessInProgress,
-    resetDiagnostic: resetReadinessDiagnostic,
-    getProgress: getReadinessProgress,
-    state: readinessState,
-  } = useReadinessDiagnostic();
-  const [showReadinessReport, setShowReadinessReport] = useState(false);
-
   // Progressive Reveal for Strategy mode
   const {
     revealNode: revealStrategyNode,
@@ -130,14 +80,6 @@ function App() {
     nodeVisibilityMap: strategyNodeVisibility,
     edgeVisibilityMap: strategyEdgeVisibility,
   } = useProgressiveReveal(STRATEGY_NODES, STRATEGY_EDGES, 'atoms');
-
-  // Progressive Reveal for Readiness mode
-  const {
-    revealNode: revealReadinessNode,
-    resetReveal: resetReadinessReveal,
-    nodeVisibilityMap: readinessNodeVisibility,
-    edgeVisibilityMap: readinessEdgeVisibility,
-  } = useProgressiveReveal(READINESS_NODES, READINESS_EDGES, 'assess');
 
   // Zoom to phase cluster when selected
   useEffect(() => {
@@ -155,10 +97,6 @@ function App() {
         return { nodes: STRATEGY_NODES, edges: STRATEGY_EDGES };
       case 'knowledge':
         return { nodes: KNOWLEDGE_NODES, edges: KNOWLEDGE_EDGES };
-      case 'mistakes':
-        return { nodes: MISTAKES_NODES, edges: MISTAKES_EDGES };
-      case 'readiness':
-        return { nodes: READINESS_NODES, edges: READINESS_EDGES };
     }
   };
   const { nodes: currentNodes, edges: currentEdges } = getNodesAndEdges();
@@ -176,19 +114,6 @@ function App() {
         const choice = edge.label?.toLowerCase() === 'yes' ? 'yes' : 'no';
         recordDecision(edge.from, choice);
         revealStrategyNode(edge.to); // Reveal the destination node
-      }
-    }
-
-    // Track diagnostic path in Readiness mode + progressive reveal
-    if (chartMode === 'readiness') {
-      if (item.type === 'node') {
-        recordReadinessVisit(item.data.id);
-        revealReadinessNode(item.data.id);
-      } else if (item.type === 'edge') {
-        const edge = item.data as FlowEdge;
-        const choice = edge.label?.toLowerCase() || 'yes';
-        recordReadinessDecision(edge.from, choice);
-        revealReadinessNode(edge.to);
       }
     }
   };
@@ -245,36 +170,37 @@ function App() {
     return 'augment'; // Fallback
   };
 
-  const handleStartInterview = () => {
-    setIsInterviewMode(true);
-    setSelectedItem(null);
-  };
+  // WIP: Voice Interview handlers - temporarily disabled
+  // const handleStartInterview = () => {
+  //   setIsInterviewMode(true);
+  //   setSelectedItem(null);
+  // };
 
-  const handleCloseInterview = () => {
-    setIsInterviewMode(false);
-  };
+  // const handleCloseInterview = () => {
+  //   setIsInterviewMode(false);
+  // };
 
-  const handleRevealNodes = useCallback((nodes: GraphNodeId[]) => {
-    setRevealedNodes(prev => {
-      const newNodes = nodes.filter(n => !prev.includes(n));
-      return newNodes.length > 0 ? [...prev, ...newNodes] : prev;
-    });
-  }, []);
+  // const handleRevealNodes = useCallback((nodes: GraphNodeId[]) => {
+  //   setRevealedNodes(prev => {
+  //     const newNodes = nodes.filter(n => !prev.includes(n));
+  //     return newNodes.length > 0 ? [...prev, ...newNodes] : prev;
+  //   });
+  // }, []);
 
   const handleModeChange = (mode: ChartMode) => {
     setChartMode(mode);
     setSelectedItem(null); // Clear selection when switching modes
   };
 
-  // Render interview mode
-  if (isInterviewMode) {
-    return (
-      <InterviewMode
-        onClose={handleCloseInterview}
-        onRevealNodes={handleRevealNodes}
-      />
-    );
-  }
+  // WIP: Voice Interview render - temporarily disabled
+  // if (isInterviewMode) {
+  //   return (
+  //     <InterviewMode
+  //       onClose={handleCloseInterview}
+  //       onRevealNodes={handleRevealNodes}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="relative w-screen h-screen bg-[#0a0a0a] overflow-hidden flex flex-col">
@@ -321,25 +247,6 @@ function App() {
           >
             KNOWLEDGE
           </button>
-          <button
-            onClick={() => handleModeChange('readiness')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'readiness'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            READINESS
-          </button>
-          <button
-            onClick={() => handleModeChange('mistakes')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'mistakes'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            MISTAKES
-          </button>
-
         </div>
 
         <div className="hidden md:flex space-x-8 text-[#33ff00]/80 text-xl font-bold font-vt323">
@@ -386,33 +293,10 @@ function App() {
                 : '> AI SURVIVAL DIAGNOSTIC: Is your business built for the Bits or the Atoms?'
           )}
           {chartMode === 'knowledge' && '> KNOWLEDGE DISTRIBUTION: Extract, Package, Distribute expert knowledge'}
-          {chartMode === 'mistakes' && (
-            auditComplete
-              ? `> AUDIT COMPLETE: ${getAuditScore().issues} issue${getAuditScore().issues !== 1 ? 's' : ''} detected. View your report.`
-              : '> AI ADOPTION HEALTH AUDIT: Are you making these 7 mistakes?'
-          )}
-          {chartMode === 'readiness' && (
-            readinessInProgress
-              ? `> MATURITY ANALYSIS IN PROGRESS: ${getReadinessProgress()}% complete. Identify your archetype...`
-              : readinessComplete
-                ? '> ANALYSIS COMPLETE: Organizational Archetype identified. View your report!'
-                : '> AGENT READINESS: Identify your archetype and maturity level'
-          )}
         </span>
         {(chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete)) && (
           <button
             onClick={handleResetDiagnostic}
-            className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
-          >
-            [RESET]
-          </button>
-        )}
-        {(chartMode === 'readiness' && (readinessInProgress || readinessComplete)) && (
-          <button
-            onClick={() => {
-              resetReadinessDiagnostic();
-              setSelectedItem(null);
-            }}
             className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
           >
             [RESET]
@@ -429,8 +313,7 @@ function App() {
           selectedItem={selectedItem}
           visitedNodes={
             chartMode === 'task' ? taskVisitedNodes :
-              chartMode === 'strategy' ? strategyState.visitedNodes :
-                chartMode === 'readiness' ? readinessState.visitedNodes : []
+              chartMode === 'strategy' ? strategyState.visitedNodes : []
           }
           visitedEdges={
             chartMode === 'task' ? taskVisitedNodes.slice(0, -1).map((id, i) => {
@@ -440,31 +323,17 @@ function App() {
               chartMode === 'strategy' ? strategyState.visitedNodes.slice(0, -1).map((id, i) => {
                 const nextId = strategyState.visitedNodes[i + 1];
                 return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
-              }).filter(id => id !== '') :
-                chartMode === 'readiness' ? readinessState.visitedNodes.slice(0, -1).map((id, i) => {
-                  const nextId = readinessState.visitedNodes[i + 1];
-                  return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
-                }).filter(id => id !== '') : []
+              }).filter(id => id !== '') : []
           }
           currentNodeId={
             chartMode === 'task' ? taskVisitedNodes[taskVisitedNodes.length - 1] :
-              chartMode === 'strategy' ? strategyState.visitedNodes[strategyState.visitedNodes.length - 1] :
-                chartMode === 'readiness' ? readinessState.visitedNodes[readinessState.visitedNodes.length - 1] : null
+              chartMode === 'strategy' ? strategyState.visitedNodes[strategyState.visitedNodes.length - 1] : null
           }
           zoomArea={chartMode === 'knowledge' && activePhase ? knowledgePhases.find(p => p.id === activePhase)?.zoomTarget : null}
-          nodeVisibility={
-            chartMode === 'strategy' ? strategyNodeVisibility :
-              chartMode === 'readiness' ? readinessNodeVisibility : undefined
-          }
-          edgeVisibility={
-            chartMode === 'strategy' ? strategyEdgeVisibility :
-              chartMode === 'readiness' ? readinessEdgeVisibility : undefined
-          }
-          startNodeId={
-            chartMode === 'strategy' ? 'atoms' :
-              chartMode === 'readiness' ? 'assess' : null
-          }
-          nodeHighlights={chartMode === 'mistakes' ? mistakesNodeHighlights : {}}
+          nodeVisibility={chartMode === 'strategy' ? strategyNodeVisibility : undefined}
+          edgeVisibility={chartMode === 'strategy' ? strategyEdgeVisibility : undefined}
+          startNodeId={chartMode === 'strategy' ? 'atoms' : null}
+          nodeHighlights={{}}
         />
       </main>
 
@@ -472,7 +341,7 @@ function App() {
       <InfoTerminal
         selectedItem={selectedItem}
         onClose={handleCloseTerminal}
-        isDiagnosticMode={chartMode === 'strategy' || chartMode === 'readiness'}
+        isDiagnosticMode={chartMode === 'strategy'}
         isAssessmentMode={chartMode === 'task' && taskMode === 'assess'}
         onDecision={handleTaskDecision}
       />
@@ -512,15 +381,6 @@ function App() {
         />
       )}
 
-      {/* Readiness Report Generator */}
-      {chartMode === 'readiness' && (
-        <ReadinessReportGenerator
-          isComplete={readinessComplete}
-          onGenerate={() => setShowReadinessReport(true)}
-          pathSummary={getReadinessSummary()}
-        />
-      )}
-
       {/* Survival Blueprint Modal */}
       {showBlueprint && (
         <SurvivalBlueprint
@@ -530,42 +390,7 @@ function App() {
         />
       )}
 
-      {showReadinessReport && (
-        <ReadinessReport
-          pathSummary={getReadinessSummary()}
-          onClose={() => setShowReadinessReport(false)}
-          onReset={() => {
-            resetReadinessDiagnostic();
-            setShowReadinessReport(false);
-            setSelectedItem(null);
-          }}
-        />
-      )}
-
-      {/* Mistakes Audit Panel - Mistakes Mode */}
-      {chartMode === 'mistakes' && (
-        <MistakesAuditPanel
-          responses={auditResponses}
-          onResponse={setAuditResponse}
-          score={getAuditScore()}
-          onViewReport={() => setShowAuditReport(true)}
-          onReset={resetAudit}
-        />
-      )}
-
-      {/* Mistakes Audit Report Modal */}
-      {showAuditReport && (
-        <MistakesAuditReport
-          score={getAuditScore()}
-          onClose={() => setShowAuditReport(false)}
-          onReset={() => {
-            resetAudit();
-            setShowAuditReport(false);
-          }}
-        />
-      )}
-
-      {/* Interview Button - Only show for task mode */}
+      {/* WIP: Voice Interview Button - temporarily disabled
       {chartMode === 'task' && (
         <button
           onClick={handleStartInterview}
@@ -576,6 +401,7 @@ function App() {
           <span className="md:hidden">INTERVIEW</span>
         </button>
       )}
+      */}
 
       {/* Footer Instructions (Only visible when no selection) */}
       {!selectedItem && (
