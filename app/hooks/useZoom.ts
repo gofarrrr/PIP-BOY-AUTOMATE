@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, WheelEvent } from 'react';
+import React, { useState, useCallback, useRef, WheelEvent } from 'react';
 import { FlowNode } from '../types';
 
 export interface ViewBox {
@@ -22,14 +22,22 @@ interface UseZoomReturn {
     zoomToArea: (target: ViewBox, duration?: number) => void;
     resetZoom: () => void;
     handleWheel: (e: WheelEvent) => void;
+    handleMouseDown: (e: React.MouseEvent) => void;
+    handleMouseMove: (e: React.MouseEvent) => void;
+    handleMouseUp: () => void;
+    handleMouseLeave: () => void;
     isAnimating: boolean;
+    isPanning: boolean;
 }
 
 export function useZoom(): UseZoomReturn {
     const [viewBox, setViewBox] = useState<ViewBox>(DEFAULT_VIEWBOX);
     const [zoomLevel, setZoomLevel] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
+    const [isPanning, setIsPanning] = useState(false);
     const animationRef = useRef<number | null>(null);
+    const panStartRef = useRef<{ x: number; y: number; viewBoxX: number; viewBoxY: number } | null>(null);
+    const svgRef = useRef<SVGSVGElement | null>(null);
 
     // Animate viewBox transition
     const animateToViewBox = useCallback((targetViewBox: ViewBox, duration = 400) => {
@@ -177,6 +185,65 @@ export function useZoom(): UseZoomReturn {
         }
     }, [zoomIn, zoomOut]);
 
+    // Pan/drag handlers
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        // Don't pan if clicking on interactive elements (nodes, edges, text)
+        const target = e.target as SVGElement;
+        const tagName = target.tagName?.toLowerCase();
+
+        // Skip panning for interactive node/edge elements
+        const interactiveTags = ['text', 'tspan', 'rect', 'path', 'polygon', 'circle', 'ellipse'];
+        if (interactiveTags.includes(tagName)) {
+            return;
+        }
+
+        e.preventDefault();
+        setIsPanning(true);
+        panStartRef.current = {
+            x: e.clientX,
+            y: e.clientY,
+            viewBoxX: viewBox.x,
+            viewBoxY: viewBox.y,
+        };
+    }, [viewBox.x, viewBox.y]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!isPanning || !panStartRef.current) return;
+
+        e.preventDefault();
+
+        // Calculate the movement in screen pixels
+        const dx = e.clientX - panStartRef.current.x;
+        const dy = e.clientY - panStartRef.current.y;
+
+        // Get the SVG element dimensions to calculate scale
+        const svg = e.currentTarget as SVGSVGElement;
+        const rect = svg.getBoundingClientRect();
+
+        // Scale mouse movement to viewBox coordinates
+        const scaleX = viewBox.width / rect.width;
+        const scaleY = viewBox.height / rect.height;
+
+        const newViewBox = clampViewBox({
+            x: panStartRef.current.viewBoxX - dx * scaleX,
+            y: panStartRef.current.viewBoxY - dy * scaleY,
+            width: viewBox.width,
+            height: viewBox.height,
+        });
+
+        setViewBox(newViewBox);
+    }, [isPanning, viewBox.width, viewBox.height, clampViewBox]);
+
+    const handleMouseUp = useCallback(() => {
+        setIsPanning(false);
+        panStartRef.current = null;
+    }, []);
+
+    const handleMouseLeave = useCallback(() => {
+        setIsPanning(false);
+        panStartRef.current = null;
+    }, []);
+
     return {
         viewBox,
         zoomLevel,
@@ -186,6 +253,11 @@ export function useZoom(): UseZoomReturn {
         zoomToArea,
         resetZoom,
         handleWheel,
+        handleMouseDown,
+        handleMouseMove,
+        handleMouseUp,
+        handleMouseLeave,
         isAnimating,
+        isPanning,
     };
 }

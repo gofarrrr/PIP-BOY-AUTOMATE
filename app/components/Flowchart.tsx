@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { SelectedItem, FlowNode, FlowEdge } from '../types';
 import GraphNode from './GraphNode';
 import type { NodeHighlightType } from './GraphNode';
@@ -46,6 +46,11 @@ const Flowchart: React.FC<FlowchartProps> = ({
     zoomToArea,
     resetZoom,
     handleWheel,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp,
+    handleMouseLeave,
+    isPanning,
   } = useZoom();
 
   // Handle auto-zoom from props
@@ -55,11 +60,15 @@ const Flowchart: React.FC<FlowchartProps> = ({
     }
   }, [zoomArea, zoomToArea]);
 
-  // Auto-zoom to start node when entering progressive reveal mode
+  // Track if we've auto-zoomed to prevent re-triggering on nodes array changes
+  const hasAutoZoomedRef = useRef<string | null>(null);
+
+  // Auto-zoom to start node when entering progressive reveal mode (only once per startNodeId)
   useEffect(() => {
-    if (startNodeId) {
+    if (startNodeId && hasAutoZoomedRef.current !== startNodeId) {
       const startNode = nodes.find(n => n.id === startNodeId);
       if (startNode) {
+        hasAutoZoomedRef.current = startNodeId;
         // Small delay to ensure component is mounted and visible
         const timer = setTimeout(() => {
           zoomToNode(startNode);
@@ -84,7 +93,11 @@ const Flowchart: React.FC<FlowchartProps> = ({
         className="w-full h-full max-w-[1200px] max-h-[1200px]"
         preserveAspectRatio="xMidYMid meet"
         onWheel={handleWheel}
-        style={{ cursor: zoomLevel > 0 ? 'grab' : 'default' }}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        style={{ cursor: isPanning ? 'grabbing' : (zoomLevel > 0 ? 'grab' : 'default') }}
       >
         <defs>
           <marker
