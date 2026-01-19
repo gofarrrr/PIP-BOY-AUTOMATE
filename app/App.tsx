@@ -1,14 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Flowchart from './components/Flowchart';
 import InfoTerminal from './components/InfoTerminal';
 import InterviewMode from './components/InterviewMode';
-import { SelectedItem } from './types';
+import BlueprintGenerator from './components/BlueprintGenerator';
+import SurvivalBlueprint from './components/SurvivalBlueprint';
+import { SelectedItem, FlowEdge } from './types';
 import type { GraphNodeId } from './types/interview';
 import { NODES, EDGES } from './constants';
 import { STRATEGY_NODES, STRATEGY_EDGES } from './constants-strategy';
 import { KNOWLEDGE_NODES, KNOWLEDGE_EDGES } from './constants-knowledge';
 import { MISTAKES_NODES, MISTAKES_EDGES } from './constants-mistakes';
 import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
+import { useDiagnosticPath } from './hooks/useDiagnosticPath';
 
 type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
 
@@ -17,6 +20,18 @@ function App() {
   const [isInterviewMode, setIsInterviewMode] = useState(false);
   const [revealedNodes, setRevealedNodes] = useState<GraphNodeId[]>([]);
   const [chartMode, setChartMode] = useState<ChartMode>('task');
+  const [showBlueprint, setShowBlueprint] = useState(false);
+
+  // Diagnostic path tracking for Strategy mode
+  const {
+    recordNodeVisit,
+    recordDecision,
+    getPathSummary,
+    isComplete: diagnosticComplete,
+    isInProgress: diagnosticInProgress,
+    resetDiagnostic,
+    getProgress,
+  } = useDiagnosticPath();
 
   // Get the appropriate nodes/edges based on mode
   const getNodesAndEdges = () => {
@@ -37,6 +52,30 @@ function App() {
 
   const handleSelect = (item: SelectedItem) => {
     setSelectedItem(item);
+
+    // Track diagnostic path in Strategy mode
+    if (chartMode === 'strategy') {
+      if (item.type === 'node') {
+        recordNodeVisit(item.data.id);
+      } else if (item.type === 'edge') {
+        const edge = item.data as FlowEdge;
+        const choice = edge.label?.toLowerCase() === 'yes' ? 'yes' : 'no';
+        recordDecision(edge.from, choice);
+      }
+    }
+  };
+
+  const handleShowBlueprint = () => {
+    setShowBlueprint(true);
+  };
+
+  const handleCloseBlueprint = () => {
+    setShowBlueprint(false);
+  };
+
+  const handleResetDiagnostic = () => {
+    resetDiagnostic();
+    setShowBlueprint(false);
   };
 
   const handleCloseTerminal = () => {
@@ -146,14 +185,28 @@ function App() {
       </header>
 
       {/* Chart Mode Subtitle */}
-      <div className="relative z-30 px-6 py-1 bg-[#001100]/40 border-b border-[#33ff00]/20">
+      <div className="relative z-30 px-6 py-1 bg-[#001100]/40 border-b border-[#33ff00]/20 flex justify-between items-center">
         <span className="text-[#33ff00]/60 font-vt323 text-sm">
           {chartMode === 'task' && '> AUTOMATION ASSESSMENT: Should I automate this task?'}
-          {chartMode === 'strategy' && '> AI STRATEGY: Where should my business invest in AI?'}
+          {chartMode === 'strategy' && (
+            diagnosticInProgress
+              ? `> DIAGNOSTIC IN PROGRESS: ${getProgress()}% complete. Click nodes to continue...`
+              : diagnosticComplete
+                ? '> DIAGNOSTIC COMPLETE: Your Survival Blueprint is ready!'
+                : '> AI SURVIVAL DIAGNOSTIC: Is your business built for the Bits or the Atoms?'
+          )}
           {chartMode === 'knowledge' && '> KNOWLEDGE DISTRIBUTION: Extract, Package, Distribute expert knowledge'}
           {chartMode === 'mistakes' && '> AI ADOPTION MISTAKES: Diagnose the 7 common anti-patterns'}
           {chartMode === 'readiness' && '> AGENT READINESS: Identify your archetype and maturity level'}
         </span>
+        {chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete) && (
+          <button
+            onClick={handleResetDiagnostic}
+            className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
+          >
+            [RESET]
+          </button>
+        )}
       </div>
 
       {/* Main Graph Area */}
@@ -167,7 +220,29 @@ function App() {
       </main>
 
       {/* Info Terminal Overlay */}
-      <InfoTerminal selectedItem={selectedItem} onClose={handleCloseTerminal} />
+      <InfoTerminal
+        selectedItem={selectedItem}
+        onClose={handleCloseTerminal}
+        isDiagnosticMode={chartMode === 'strategy'}
+      />
+
+      {/* Blueprint Generator - Strategy Mode */}
+      {chartMode === 'strategy' && (
+        <BlueprintGenerator
+          isComplete={diagnosticComplete}
+          onGenerate={handleShowBlueprint}
+          pathSummary={getPathSummary()}
+        />
+      )}
+
+      {/* Survival Blueprint Modal */}
+      {showBlueprint && (
+        <SurvivalBlueprint
+          pathSummary={getPathSummary()}
+          onClose={handleCloseBlueprint}
+          onReset={handleResetDiagnostic}
+        />
+      )}
 
       {/* Interview Button - Only show for task mode */}
       {chartMode === 'task' && (

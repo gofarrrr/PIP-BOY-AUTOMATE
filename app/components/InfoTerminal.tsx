@@ -4,10 +4,16 @@ import { SelectedItem, FlowNode, FlowEdge } from '../types';
 interface InfoTerminalProps {
   selectedItem: SelectedItem | null;
   onClose: () => void;
+  isDiagnosticMode?: boolean;
 }
 
-const InfoTerminal: React.FC<InfoTerminalProps> = ({ selectedItem, onClose }) => {
+const InfoTerminal: React.FC<InfoTerminalProps> = ({ selectedItem, onClose, isDiagnosticMode = false }) => {
   const [displayedText, setDisplayedText] = useState({ why: '', evaluate: '', read: '' });
+
+  // Section headers - different for diagnostic mode
+  const headers = isDiagnosticMode
+    ? { why: 'SITUATION ASSESSMENT', evaluate: 'YOUR TEST', read: 'YOUR ACTION' }
+    : { why: 'ANALYSIS', evaluate: 'EVALUATION', read: 'EXECUTION' };
 
   // Extract data based on selection type
   const data = selectedItem ? selectedItem.data : null;
@@ -70,20 +76,20 @@ const InfoTerminal: React.FC<InfoTerminalProps> = ({ selectedItem, onClose }) =>
       {/* Content */}
       <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh] md:max-h-80 text-[#33ff00]">
         <div>
-          <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  ANALYSIS</h3>
+          <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.why}</h3>
           <p className="leading-6 text-2xl opacity-90">{displayedText.why}<span className="animate-pulse">_</span></p>
         </div>
 
         {displayedText.why.length === description.why.length && (
           <div>
-            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  EVALUATION</h3>
+            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.evaluate}</h3>
             <p className="leading-6 text-2xl opacity-90">{displayedText.evaluate}</p>
           </div>
         )}
 
         {displayedText.evaluate.length === description.evaluate.length && (
           <div>
-            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  EXECUTION</h3>
+            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.read}</h3>
             <p className="leading-6 text-2xl opacity-90">{displayedText.read}</p>
           </div>
         )}
