@@ -296,15 +296,7 @@ function App() {
           >
             MISTAKES
           </button>
-          <button
-            onClick={() => handleModeChange('readiness')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'readiness'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            READINESS
-          </button>
+
         </div>
 
         <div className="hidden md:flex space-x-8 text-[#33ff00]/80 text-xl font-bold font-vt323">
