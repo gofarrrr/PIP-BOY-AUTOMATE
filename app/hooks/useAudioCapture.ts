@@ -3,6 +3,29 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { AudioCaptureState } from '../types/interview';
 
+// Simple linear resampling from source rate to target rate
+function resampleAudio(inputData: Float32Array, sourceRate: number, targetRate: number): Float32Array {
+    if (sourceRate === targetRate) {
+        return new Float32Array(inputData);
+    }
+
+    const ratio = sourceRate / targetRate;
+    const newLength = Math.round(inputData.length / ratio);
+    const result = new Float32Array(newLength);
+
+    for (let i = 0; i < newLength; i++) {
+        const srcIndex = i * ratio;
+        const srcIndexFloor = Math.floor(srcIndex);
+        const srcIndexCeil = Math.min(srcIndexFloor + 1, inputData.length - 1);
+        const fraction = srcIndex - srcIndexFloor;
+
+        // Linear interpolation
+        result[i] = inputData[srcIndexFloor] * (1 - fraction) + inputData[srcIndexCeil] * fraction;
+    }
+
+    return result;
+}
+
 interface UseAudioCaptureOptions {
     onAudioData?: (data: Float32Array) => void;
     onAudioLevel?: (level: number) => void;
@@ -102,8 +125,11 @@ export function useAudioCapture(options: UseAudioCaptureOptions = {}): UseAudioC
 
             mediaStreamRef.current = stream;
 
-            // Create audio context
+            // Create audio context - browser may use different sample rate
             audioContextRef.current = new AudioContext({ sampleRate });
+            const actualSampleRate = audioContextRef.current.sampleRate;
+            console.log(`🎙️ Audio context created - requested: ${sampleRate}Hz, actual: ${actualSampleRate}Hz`);
+
             const source = audioContextRef.current.createMediaStreamSource(stream);
 
             // Create analyser for visualization
@@ -119,7 +145,14 @@ export function useAudioCapture(options: UseAudioCaptureOptions = {}): UseAudioC
                 processorRef.current.onaudioprocess = (event) => {
                     if (!state.isPaused) {
                         const inputData = event.inputBuffer.getChannelData(0);
-                        onAudioData(new Float32Array(inputData));
+
+                        // Resample to 16kHz if necessary
+                        if (actualSampleRate !== 16000) {
+                            const resampledData = resampleAudio(inputData, actualSampleRate, 16000);
+                            onAudioData(resampledData);
+                        } else {
+                            onAudioData(new Float32Array(inputData));
+                        }
                     }
                 };
                 source.connect(processorRef.current);

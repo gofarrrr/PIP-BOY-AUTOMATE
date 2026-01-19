@@ -100,7 +100,7 @@ export interface FunctionDeclaration {
 }
 
 export interface GeminiLiveCallbacks {
-    onTranscript: (text: string, isFinal: boolean) => void;
+    onTranscript: (text: string, isFinal: boolean, speaker?: 'user' | 'ai') => void;
     onAudioResponse: (audioData: ArrayBuffer) => void;
     onSignalExtracted: (signal: ExtractedSignal) => void;
     onError: (error: Error) => void;

@@ -1,18 +1,19 @@
 import React from 'react';
-import { NODES, EDGES } from '../constants';
-import { SelectedItem, FlowNode } from '../types';
+import { SelectedItem, FlowNode, FlowEdge } from '../types';
 import GraphNode from './GraphNode';
 import GraphEdge from './GraphEdge';
 import ZoomControls from './ZoomControls';
 import { useZoom } from '../hooks/useZoom';
 
 interface FlowchartProps {
+  nodes: FlowNode[];
+  edges: FlowEdge[];
   onSelect: (item: SelectedItem) => void;
   selectedItem: SelectedItem | null;
   onZoomToNode?: (node: FlowNode) => void;
 }
 
-const Flowchart: React.FC<FlowchartProps> = ({ onSelect, selectedItem }) => {
+const Flowchart: React.FC<FlowchartProps> = ({ nodes, edges, onSelect, selectedItem }) => {
   const {
     viewBox,
     zoomLevel,
@@ -64,9 +65,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ onSelect, selectedItem }) => {
         </defs>
 
         {/* 1. Edges Paths Layer */}
-        {EDGES.map(edge => {
-          const from = NODES.find(n => n.id === edge.from);
-          const to = NODES.find(n => n.id === edge.to);
+        {edges.map(edge => {
+          const from = nodes.find(n => n.id === edge.from);
+          const to = nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
           return (
@@ -83,7 +84,7 @@ const Flowchart: React.FC<FlowchartProps> = ({ onSelect, selectedItem }) => {
         })}
 
         {/* 2. Nodes Layer */}
-        {NODES.map(node => {
+        {nodes.map(node => {
           const isSelected = selectedItem?.type === 'node' && selectedItem.data.id === node.id;
           return (
             <GraphNode
@@ -96,9 +97,9 @@ const Flowchart: React.FC<FlowchartProps> = ({ onSelect, selectedItem }) => {
         })}
 
         {/* 3. Edges Labels Layer (On top of everything) */}
-        {EDGES.map(edge => {
-          const from = NODES.find(n => n.id === edge.from);
-          const to = NODES.find(n => n.id === edge.to);
+        {edges.map(edge => {
+          const from = nodes.find(n => n.id === edge.from);
+          const to = nodes.find(n => n.id === edge.to);
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
           return (
@@ -128,4 +129,3 @@ const Flowchart: React.FC<FlowchartProps> = ({ onSelect, selectedItem }) => {
 };
 
 export default Flowchart;
-

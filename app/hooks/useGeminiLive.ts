@@ -1,10 +1,10 @@
-// Gemini Live API integration hook
-// Note: This uses the Gemini API with audio input/output capabilities
+// Gemini Live API integration hook with real-time audio
+// Uses WebSocket-based Live API for bidirectional streaming
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { GoogleGenAI, Modality, EndSensitivity } from '@google/genai';
 import type {
     ExtractedSignal,
-    TranscriptEntry,
     GeminiLiveCallbacks,
     GraphNodeId
 } from '../types/interview';
@@ -12,11 +12,14 @@ import {
     GEMINI_API_KEY,
     GEMINI_MODEL,
     INTERVIEWER_SYSTEM_PROMPT,
-    GEMINI_TOOLS,
     isGeminiConfigured
 } from '../services/geminiConfig';
+import { floatTo16BitPCM, arrayBufferToBase64, AudioPlayer } from '../utils/audioUtils';
 
 type SessionState = 'idle' | 'connecting' | 'connected' | 'error' | 'ended';
+
+// Model for Live API
+const LIVE_MODEL = `models/${GEMINI_MODEL}`;
 
 interface UseGeminiLiveReturn {
     sessionState: SessionState;
@@ -26,133 +29,92 @@ interface UseGeminiLiveReturn {
     endSession: () => void;
     sendMessage: (text: string) => Promise<void>;
     sendAudio: (audioData: Float32Array) => void;
+    sendAudioStreamEnd: () => void;
 }
 
-// For MVP, we'll use the standard Gemini API with generateContent
-// Real-time streaming would require WebSocket connection or Live API
 export function useGeminiLive(callbacks: GeminiLiveCallbacks): UseGeminiLiveReturn {
     const [sessionState, setSessionState] = useState<SessionState>('idle');
     const [error, setError] = useState<Error | null>(null);
 
-    const conversationHistoryRef = useRef<Array<{ role: string; parts: Array<{ text: string }> }>>([]);
-    const audioBufferRef = useRef<Float32Array[]>([]);
-    const processingRef = useRef(false);
+    const sessionRef = useRef<any>(null);
+    const sessionStateRef = useRef<SessionState>('idle'); // Ref to avoid stale closures
+    const audioPlayerRef = useRef<AudioPlayer | null>(null);
+    const transcriptBufferRef = useRef<string>('');
+
+    // Keep ref in sync with state
+    useEffect(() => {
+        sessionStateRef.current = sessionState;
+    }, [sessionState]);
 
     const isConfigured = isGeminiConfigured();
 
-    // Process buffered audio and send to Gemini
-    const processAudioBuffer = useCallback(async () => {
-        if (processingRef.current || audioBufferRef.current.length === 0) return;
-
-        processingRef.current = true;
-
-        try {
-            // Combine audio chunks
-            const totalLength = audioBufferRef.current.reduce((sum, chunk) => sum + chunk.length, 0);
-            const combined = new Float32Array(totalLength);
-            let offset = 0;
-            for (const chunk of audioBufferRef.current) {
-                combined.set(chunk, offset);
-                offset += chunk.length;
-            }
-            audioBufferRef.current = [];
-
-            // For MVP, we'll simulate transcription with a placeholder
-            // In production, this would use Gemini's audio input capability
-            console.log('Audio buffer processed, length:', combined.length);
-
-        } catch (err) {
-            console.error('Error processing audio:', err);
-        } finally {
-            processingRef.current = false;
-        }
+    // Initialize audio player
+    useEffect(() => {
+        audioPlayerRef.current = new AudioPlayer(24000);
+        return () => {
+            audioPlayerRef.current?.stop();
+        };
     }, []);
 
-    const startSession = useCallback(async (): Promise<boolean> => {
-        if (!isConfigured) {
-            setError(new Error('Gemini API key not configured'));
-            setSessionState('error');
-            return false;
-        }
+    // Handle incoming messages from Gemini
+    const handleMessage = useCallback((message: any) => {
+        console.log('📨 Received message:', JSON.stringify(message, null, 2));
 
         try {
-            setSessionState('connecting');
-
-            // Initialize conversation with system prompt
-            conversationHistoryRef.current = [];
-
-            // Send initial greeting
-            const response = await sendToGemini(
-                "The user has just started the interview. Introduce yourself briefly and ask them to describe the task they're considering for automation.",
-                true
-            );
-
-            if (response) {
-                setSessionState('connected');
-                callbacks.onTranscript(response, true);
-                return true;
+            // Handle interruption
+            if (message.serverContent?.interrupted) {
+                console.log('⏹️ Interrupted - user started speaking');
+                audioPlayerRef.current?.reset();
+                return;
             }
 
-            throw new Error('Failed to start session');
-        } catch (err) {
-            const error = err instanceof Error ? err : new Error('Failed to start session');
-            setError(error);
-            setSessionState('error');
-            callbacks.onError(error);
-            return false;
-        }
-    }, [isConfigured, callbacks]);
-
-    const sendToGemini = async (userMessage: string, isSystemMessage = false): Promise<string | null> => {
-        if (!GEMINI_API_KEY) return null;
-
-        try {
-            // Add message to history
-            if (!isSystemMessage) {
-                conversationHistoryRef.current.push({
-                    role: 'user',
-                    parts: [{ text: userMessage }]
-                });
+            // Handle input transcription (what the user said)
+            if (message.serverContent?.inputTranscription?.text) {
+                const userText = message.serverContent.inputTranscription.text;
+                console.log('👤 User said:', userText);
+                callbacks.onTranscript(userText, true, 'user');
             }
 
-            const requestBody = {
-                contents: [
-                    {
-                        role: 'user',
-                        parts: [{ text: INTERVIEWER_SYSTEM_PROMPT }]
-                    },
-                    ...conversationHistoryRef.current,
-                    ...(isSystemMessage ? [{ role: 'user', parts: [{ text: userMessage }] }] : [])
-                ],
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 500,
-                },
-                tools: GEMINI_TOOLS
-            };
+            // Handle output transcription (what the AI said - text version of audio)
+            if (message.serverContent?.outputTranscription?.text) {
+                const aiText = message.serverContent.outputTranscription.text;
+                console.log('🤖 AI said:', aiText);
+                callbacks.onTranscript(aiText, true, 'ai');
+            }
 
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
+            // Handle model turn (response with audio)
+            if (message.serverContent?.modelTurn?.parts) {
+                console.log('🗣️ Model turn with', message.serverContent.modelTurn.parts.length, 'parts');
+                for (const part of message.serverContent.modelTurn.parts) {
+                    // Handle audio response
+                    if (part.inlineData?.data) {
+                        console.log('🔊 Audio data received, length:', part.inlineData.data.length);
+                        audioPlayerRef.current?.play(part.inlineData.data);
+                    }
+
+                    // Handle text in response (fallback if transcription not working)
+                    if (part.text) {
+                        console.log('📝 Text in modelTurn:', part.text);
+                        transcriptBufferRef.current += part.text;
+                    }
                 }
-            );
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
             }
 
-            const data = await response.json();
+            // Handle turn complete
+            if (message.serverContent?.turnComplete) {
+                console.log('✅ Turn complete');
+                if (transcriptBufferRef.current) {
+                    callbacks.onTranscript(transcriptBufferRef.current, true, 'ai');
+                    transcriptBufferRef.current = '';
+                }
+            }
 
             // Handle function calls (signal extraction)
-            if (data.candidates?.[0]?.content?.parts) {
-                for (const part of data.candidates[0].content.parts) {
-                    if (part.functionCall?.name === 'extract_signal') {
-                        const args = part.functionCall.arguments;
+            if (message.toolCall) {
+                console.log('🔧 Tool call:', message.toolCall);
+                for (const fc of message.toolCall.functionCalls || []) {
+                    if (fc.name === 'extract_signal') {
+                        const args = fc.args;
                         const signal: ExtractedSignal = {
                             nodeId: args.nodeId as GraphNodeId,
                             answer: args.answer,
@@ -163,66 +125,159 @@ export function useGeminiLive(callbacks: GeminiLiveCallbacks): UseGeminiLiveRetu
                         };
                         callbacks.onSignalExtracted(signal);
                     }
-
-                    if (part.text) {
-                        // Add response to history
-                        conversationHistoryRef.current.push({
-                            role: 'model',
-                            parts: [{ text: part.text }]
-                        });
-                        return part.text;
-                    }
                 }
             }
+        } catch (err) {
+            console.error('Error handling message:', err);
+        }
+    }, [callbacks]);
 
-            // Extract text response
-            const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-                conversationHistoryRef.current.push({
-                    role: 'model',
-                    parts: [{ text }]
+    const startSession = useCallback(async (): Promise<boolean> => {
+        if (!isConfigured || !GEMINI_API_KEY) {
+            setError(new Error('Gemini API key not configured'));
+            setSessionState('error');
+            return false;
+        }
+
+        try {
+            setSessionState('connecting');
+            console.log('🚀 Starting Gemini Live session...');
+            console.log('📌 Model:', LIVE_MODEL);
+            console.log('🔑 API Key present:', !!GEMINI_API_KEY);
+
+            const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+            console.log('✅ GoogleGenAI instance created');
+
+            // Config with VAD tuning to prevent interruptions during natural pauses
+            const config = {
+                responseModalities: [Modality.AUDIO],
+                systemInstruction: INTERVIEWER_SYSTEM_PROMPT,
+                // Configure VAD to be less sensitive to pauses between words
+                realtimeInputConfig: {
+                    automaticActivityDetection: {
+                        // LOW = allow longer pauses before triggering end of speech
+                        endOfSpeechSensitivity: EndSensitivity.END_SENSITIVITY_LOW,
+                        // You can also adjust startOfSpeechSensitivity if needed
+                        // startOfSpeechSensitivity: 'START_SENSITIVITY_LOW',
+                    }
+                }
+            };
+            console.log('📋 Config prepared');
+
+            console.log('🔗 Attempting to connect...');
+            const session = await ai.live.connect({
+                model: LIVE_MODEL,
+                config,
+                callbacks: {
+                    onopen: () => {
+                        console.log('🟢 WebSocket CONNECTED!');
+                        setSessionState('connected');
+                    },
+                    onmessage: handleMessage,
+                    onerror: (e: any) => {
+                        console.error('🔴 WebSocket ERROR:', e);
+                        setError(new Error(e.message || 'WebSocket error'));
+                        callbacks.onError(new Error(e.message || 'Connection error'));
+                    },
+                    onclose: (e: any) => {
+                        console.log('🟡 WebSocket CLOSED:', e?.reason || 'No reason');
+                        setSessionState('ended');
+                        callbacks.onSessionEnd();
+                    },
+                },
+            });
+
+            console.log('✅ Session object received');
+            sessionRef.current = session;
+            // No initial text prompt - just stream audio directly
+            console.log('🎤 Ready! Speak to start the conversation...');
+
+            return true;
+        } catch (err) {
+            console.error('❌ Failed to start session:', err);
+            const error = err instanceof Error ? err : new Error('Failed to start session');
+            setError(error);
+            setSessionState('error');
+            callbacks.onError(error);
+            return false;
+        }
+    }, [isConfigured, handleMessage, callbacks]);
+
+    const audioSentCountRef = useRef<number>(0);
+
+    const sendAudio = useCallback((audioData: Float32Array): void => {
+        // Use ref to avoid stale closure issue
+        if (!sessionRef.current || sessionStateRef.current !== 'connected') return;
+
+        try {
+            // Convert Float32 to 16-bit PCM and base64 encode
+            const pcmBuffer = floatTo16BitPCM(audioData);
+            const base64Data = arrayBufferToBase64(pcmBuffer);
+
+            // Log first few sends to verify data
+            audioSentCountRef.current++;
+            if (audioSentCountRef.current <= 3) {
+                console.log(`🎵 Audio chunk #${audioSentCountRef.current}:`, {
+                    inputSamples: audioData.length,
+                    pcmBytes: pcmBuffer.byteLength,
+                    base64Length: base64Data.length,
+                    samplePreview: base64Data.substring(0, 50) + '...'
                 });
-                return text;
             }
 
-            return null;
+            // Send real-time audio input using SDK's 'audio' property
+            sessionRef.current.sendRealtimeInput({
+                audio: {
+                    data: base64Data,
+                    mimeType: 'audio/pcm;rate=16000'
+                }
+            });
         } catch (err) {
-            console.error('Gemini API error:', err);
-            throw err;
+            console.error('Error sending audio:', err);
         }
-    };
+    }, []); // No dependencies needed - uses refs
+
+    // Signal that audio stream has ended (user stopped speaking for >1 second)
+    const sendAudioStreamEnd = useCallback((): void => {
+        if (!sessionRef.current || sessionStateRef.current !== 'connected') return;
+
+        try {
+            console.log('🔇 Sending audioStreamEnd signal');
+            sessionRef.current.sendRealtimeInput({ audioStreamEnd: true });
+        } catch (err) {
+            console.error('Error sending audioStreamEnd:', err);
+        }
+    }, []); // No dependencies needed - uses refs
 
     const sendMessage = useCallback(async (text: string): Promise<void> => {
-        if (sessionState !== 'connected') {
+        if (!sessionRef.current || sessionState !== 'connected') {
             console.warn('Session not connected');
             return;
         }
 
         try {
-            const response = await sendToGemini(text);
-            if (response) {
-                callbacks.onTranscript(response, true);
-            }
+            // Send text message
+            sessionRef.current.sendClientContent({ turns: text, turnComplete: true });
         } catch (err) {
+            console.error('Error sending message:', err);
             const error = err instanceof Error ? err : new Error('Failed to send message');
             setError(error);
             callbacks.onError(error);
         }
     }, [sessionState, callbacks]);
 
-    const sendAudio = useCallback((audioData: Float32Array): void => {
-        // Buffer audio data
-        audioBufferRef.current.push(audioData);
-
-        // Process buffer periodically (every ~1 second of audio at 16kHz)
-        if (audioBufferRef.current.length >= 4) {
-            processAudioBuffer();
-        }
-    }, [processAudioBuffer]);
-
     const endSession = useCallback((): void => {
-        audioBufferRef.current = [];
-        conversationHistoryRef.current = [];
+        if (sessionRef.current) {
+            try {
+                sessionRef.current.close();
+            } catch (err) {
+                console.error('Error closing session:', err);
+            }
+            sessionRef.current = null;
+        }
+
+        audioPlayerRef.current?.stop();
+        transcriptBufferRef.current = '';
         setSessionState('ended');
         callbacks.onSessionEnd();
     }, [callbacks]);
@@ -235,5 +290,6 @@ export function useGeminiLive(callbacks: GeminiLiveCallbacks): UseGeminiLiveRetu
         endSession,
         sendMessage,
         sendAudio,
+        sendAudioStreamEnd,
     };
 }

@@ -5,8 +5,8 @@ import type { FunctionDeclaration, GeminiTool } from '../types/interview';
 // API Key from environment
 export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string | undefined;
 
-// Model configuration
-export const GEMINI_MODEL = 'gemini-2.0-flash-exp'; // Using latest available
+// Model configuration - using 2.5-flash for audio agent capabilities
+export const GEMINI_MODEL = 'gemini-2.0-flash-exp';
 
 // System prompt for the interviewer agent
 export const INTERVIEWER_SYSTEM_PROMPT = `You are a PIP-BOY analyst conducting a cognitive interview about a task the user is considering automating.
@@ -41,9 +41,11 @@ Include the user's actual words as reasoning.
 If you detect a recurring pattern in their thinking, include it as a cognitive motif.
 
 IMPORTANT:
-- Don't rush through questions - let the user speak fully
-- If something is unclear, ask for clarification
-- Look for contradictions and gently explore them
+- NO NOT INTERRUPT. The user needs time to think. Wait for a clear pause of at least 1-2 seconds before responding.
+- Listen to the FULL user response. Do not hallucinate an end of turn just because there is a silence.
+- Don't rush through questions - let the user speak fully.
+- If something is unclear, ask for clarification.
+- Look for contradictions and gently explore them.
 - The goal is understanding, not form-filling`;
 
 // Function declaration for signal extraction

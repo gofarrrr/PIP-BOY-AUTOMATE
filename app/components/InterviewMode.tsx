@@ -13,7 +13,7 @@ import type {
 } from '../types/interview';
 import { useAudioCapture } from '../hooks/useAudioCapture';
 import { useGeminiLive } from '../hooks/useGeminiLive';
-import { isGeminiConfigured, NODE_LABELS } from '../services/geminiConfig';
+import { isGeminiConfigured, GEMINI_MODEL, NODE_LABELS } from '../services/geminiConfig';
 import AudioVisualizer from './AudioVisualizer';
 import InterviewTranscript from './InterviewTranscript';
 import InterviewSummaryDisplay from './InterviewSummary';
@@ -37,7 +37,15 @@ const InterviewMode: React.FC<InterviewModeProps> = ({ onClose, onRevealNodes })
     const [isTyping, setIsTyping] = useState(false);
     const [userInput, setUserInput] = useState('');
     const [summary, setSummary] = useState<InterviewSummary | null>(null);
+    const [debugLogs, setDebugLogs] = useState<string[]>([]);
+    const [showDebug, setShowDebug] = useState(true); // Show debug panel by default
 
+    // Debug logger that shows on screen
+    const addDebugLog = useCallback((message: string) => {
+        const timestamp = new Date().toLocaleTimeString();
+        setDebugLogs(prev => [...prev.slice(-20), `[${timestamp}] ${message}`]);
+        console.log(message);
+    }, []);
     const transcriptIdRef = useRef(0);
 
     // Generate unique transcript ID
@@ -109,58 +117,89 @@ const InterviewMode: React.FC<InterviewModeProps> = ({ onClose, onRevealNodes })
 
     // Gemini callbacks
     const geminiCallbacks = {
-        onTranscript: (text: string, isFinal: boolean) => {
-            if (isFinal) {
-                addTranscriptEntry('ai', text);
-                setIsTyping(false);
+        onTranscript: (text: string, isFinal: boolean, speaker?: 'user' | 'ai') => {
+            const spk = speaker || 'ai';
+            addDebugLog(`📝 ${spk.toUpperCase()}: ${text.substring(0, 50)}...`);
+            if (isFinal && text.trim()) {
+                addTranscriptEntry(spk, text);
+                if (spk === 'ai') {
+                    setIsTyping(false);
+                }
+            } else if (spk === 'ai') {
+                setIsTyping(true);
             }
         },
         onAudioResponse: (audioData: ArrayBuffer) => {
-            // TODO: Play audio response
-            console.log('Audio response received:', audioData.byteLength);
+            addDebugLog(`🔊 Audio received: ${audioData.byteLength} bytes`);
         },
         onSignalExtracted: handleSignalExtracted,
         onError: (error: Error) => {
-            console.error('Gemini error:', error);
+            addDebugLog(`❌ ERROR: ${error.message}`);
             addTranscriptEntry('ai', `Error: ${error.message}`);
+            setIsTyping(false);
         },
         onSessionEnd: () => {
-            console.log('Session ended');
+            addDebugLog('🔴 Session ended');
         },
     };
 
-    // Initialize hooks
+    const gemini = useGeminiLive(geminiCallbacks);
+
+    // Audio chunk counter for logging
+    const audioChunkCountRef = useRef<number>(0);
+
+    // Audio capture - streams directly to Gemini
+    // Server-side VAD handles turn detection automatically
     const audioCapture = useAudioCapture({
-        onAudioLevel: (level) => {
+        onAudioData: (audioData: Float32Array) => {
+            // Stream audio directly to Gemini
+            gemini.sendAudio(audioData);
+            audioChunkCountRef.current++;
+
+            // Log periodically to show audio is being sent
+            if (audioChunkCountRef.current % 100 === 0) {
+                addDebugLog(`📤 Sent ${audioChunkCountRef.current} audio chunks`);
+            }
+        },
+        onAudioLevel: () => {
             // Audio level is handled by the hook state
         },
     });
 
-    const gemini = useGeminiLive(geminiCallbacks);
-
     // Start interview
     const handleStart = useCallback(async () => {
+        addDebugLog('🚀 Starting interview...');
+
         if (!isGeminiConfigured()) {
+            addDebugLog('❌ API key not configured');
             addTranscriptEntry('ai', 'Error: Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your .env.local file.');
             return;
         }
+        addDebugLog('✅ API key found');
+        addDebugLog(`🤖 Model: ${GEMINI_MODEL}`); // Explicitly log the model being used
 
         setState(prev => ({ ...prev, phase: 'intro', startTime: Date.now() }));
 
         // Start audio capture
+        addDebugLog('🎤 Starting audio capture...');
         const audioStarted = await audioCapture.startRecording();
         if (!audioStarted) {
+            addDebugLog('❌ Microphone access denied');
             addTranscriptEntry('ai', 'Error: Could not access microphone. Please grant permission and try again.');
             return;
         }
+        addDebugLog('✅ Microphone active');
 
         // Start Gemini session
+        addDebugLog('🔌 Connecting to Gemini...');
         setIsTyping(true);
         const sessionStarted = await gemini.startSession();
         if (!sessionStarted) {
+            addDebugLog('❌ Gemini connection failed');
             audioCapture.stopRecording();
             return;
         }
+        addDebugLog('✅ Gemini connected!');
 
         setState(prev => ({ ...prev, phase: 'discovery' }));
     }, [audioCapture, gemini, addTranscriptEntry]);
@@ -365,6 +404,38 @@ const InterviewMode: React.FC<InterviewModeProps> = ({ onClose, onRevealNodes })
                     </>
                 )}
             </div>
+
+            {/* Debug Panel */}
+            {showDebug && (
+                <div className="absolute bottom-0 right-0 w-96 max-h-48 bg-black/90 border-l border-t border-[#33ff00]/50 p-2 overflow-hidden">
+                    <div className="flex justify-between items-center text-xs mb-1">
+                        <span className="text-[#33ff00]">DEBUG LOG</span>
+                        <button
+                            onClick={() => setShowDebug(false)}
+                            className="text-[#33ff00]/50 hover:text-[#33ff00]"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                    <div className="text-[10px] text-[#33ff00]/70 overflow-y-auto max-h-36 font-mono">
+                        {debugLogs.length === 0 && <div>No logs yet...</div>}
+                        {debugLogs.map((log, i) => (
+                            <div key={i} className="whitespace-nowrap overflow-hidden text-ellipsis">
+                                {log}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {!showDebug && (
+                <button
+                    onClick={() => setShowDebug(true)}
+                    className="absolute bottom-2 right-2 text-xs text-[#33ff00]/30 hover:text-[#33ff00]"
+                >
+                    [DEBUG]
+                </button>
+            )}
         </div>
     );
 };
