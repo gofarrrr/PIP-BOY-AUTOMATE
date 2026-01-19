@@ -17,9 +17,12 @@ import { useDiagnosticPath } from './hooks/useDiagnosticPath';
 import { useMistakesAudit } from './hooks/useMistakesAudit';
 import { useTaskAssessment } from './hooks/useTaskAssessment';
 import { useKnowledgePlaybook } from './hooks/useKnowledgePlaybook';
+import { useReadinessDiagnostic } from './hooks/useReadinessDiagnostic';
 import TaskNameOverlay from './components/TaskNameOverlay';
 import TaskVerdict from './components/TaskVerdict';
 import KnowledgeLifecycleHUD from './components/KnowledgeLifecycleHUD';
+import ReadinessReportGenerator from './components/ReadinessReportGenerator';
+import ReadinessReport from './components/ReadinessReport';
 
 type ChartMode = 'task' | 'strategy' | 'knowledge' | 'mistakes' | 'readiness';
 
@@ -39,6 +42,7 @@ function App() {
     isInProgress: diagnosticInProgress,
     resetDiagnostic,
     getProgress,
+    state: strategyState,
   } = useDiagnosticPath();
 
   // Mistakes Audit state
@@ -84,6 +88,19 @@ function App() {
     phases: knowledgePhases,
   } = useKnowledgePlaybook();
 
+  // Readiness Diagnostic state
+  const {
+    recordNodeVisit: recordReadinessVisit,
+    recordDecision: recordReadinessDecision,
+    getPathSummary: getReadinessSummary,
+    isComplete: readinessComplete,
+    isInProgress: readinessInProgress,
+    resetDiagnostic: resetReadinessDiagnostic,
+    getProgress: getReadinessProgress,
+    state: readinessState,
+  } = useReadinessDiagnostic();
+  const [showReadinessReport, setShowReadinessReport] = useState(false);
+
   // Zoom to phase cluster when selected
   useEffect(() => {
     // We need a ref to the zoomToViewBox or similar if we want to zoom from here.
@@ -119,6 +136,17 @@ function App() {
         const edge = item.data as FlowEdge;
         const choice = edge.label?.toLowerCase() === 'yes' ? 'yes' : 'no';
         recordDecision(edge.from, choice);
+      }
+    }
+
+    // Track diagnostic path in Readiness mode
+    if (chartMode === 'readiness') {
+      if (item.type === 'node') {
+        recordReadinessVisit(item.data.id);
+      } else if (item.type === 'edge') {
+        const edge = item.data as FlowEdge;
+        const choice = edge.label?.toLowerCase() || 'yes';
+        recordReadinessDecision(edge.from, choice);
       }
     }
   };
@@ -268,6 +296,15 @@ function App() {
           >
             MISTAKES
           </button>
+          <button
+            onClick={() => handleModeChange('readiness')}
+            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'readiness'
+              ? 'bg-[#33ff00] text-black'
+              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
+              }`}
+          >
+            READINESS
+          </button>
         </div>
 
         <div className="hidden md:flex space-x-8 text-[#33ff00]/80 text-xl font-bold font-vt323">
@@ -319,11 +356,28 @@ function App() {
               ? `> AUDIT COMPLETE: ${getAuditScore().issues} issue${getAuditScore().issues !== 1 ? 's' : ''} detected. View your report.`
               : '> AI ADOPTION HEALTH AUDIT: Are you making these 7 mistakes?'
           )}
-          {chartMode === 'readiness' && '> AGENT READINESS: Identify your archetype and maturity level'}
+          {chartMode === 'readiness' && (
+            readinessInProgress
+              ? `> MATURITY ANALYSIS IN PROGRESS: ${getReadinessProgress()}% complete. Identify your archetype...`
+              : readinessComplete
+                ? '> ANALYSIS COMPLETE: Organizational Archetype identified. View your report!'
+                : '> AGENT READINESS: Identify your archetype and maturity level'
+          )}
         </span>
-        {chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete) && (
+        {(chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete)) && (
           <button
             onClick={handleResetDiagnostic}
+            className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
+          >
+            [RESET]
+          </button>
+        )}
+        {(chartMode === 'readiness' && (readinessInProgress || readinessComplete)) && (
+          <button
+            onClick={() => {
+              resetReadinessDiagnostic();
+              setSelectedItem(null);
+            }}
             className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
           >
             [RESET]
@@ -338,12 +392,30 @@ function App() {
           edges={currentEdges}
           onSelect={handleSelect}
           selectedItem={selectedItem}
-          visitedNodes={taskVisitedNodes}
-          visitedEdges={taskVisitedNodes.slice(0, -1).map((id, i) => {
-            const nextId = taskVisitedNodes[i + 1];
-            return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
-          }).filter(id => id !== '')}
-          currentNodeId={taskVisitedNodes[taskVisitedNodes.length - 1]}
+          visitedNodes={
+            chartMode === 'task' ? taskVisitedNodes :
+              chartMode === 'strategy' ? strategyState.visitedNodes :
+                chartMode === 'readiness' ? readinessState.visitedNodes : []
+          }
+          visitedEdges={
+            chartMode === 'task' ? taskVisitedNodes.slice(0, -1).map((id, i) => {
+              const nextId = taskVisitedNodes[i + 1];
+              return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
+            }).filter(id => id !== '') :
+              chartMode === 'strategy' ? strategyState.visitedNodes.slice(0, -1).map((id, i) => {
+                const nextId = strategyState.visitedNodes[i + 1];
+                return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
+              }).filter(id => id !== '') :
+                chartMode === 'readiness' ? readinessState.visitedNodes.slice(0, -1).map((id, i) => {
+                  const nextId = readinessState.visitedNodes[i + 1];
+                  return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
+                }).filter(id => id !== '') : []
+          }
+          currentNodeId={
+            chartMode === 'task' ? taskVisitedNodes[taskVisitedNodes.length - 1] :
+              chartMode === 'strategy' ? strategyState.visitedNodes[strategyState.visitedNodes.length - 1] :
+                chartMode === 'readiness' ? readinessState.visitedNodes[readinessState.visitedNodes.length - 1] : null
+          }
           zoomArea={chartMode === 'knowledge' && activePhase ? knowledgePhases.find(p => p.id === activePhase)?.zoomTarget : null}
         />
       </main>
@@ -352,7 +424,7 @@ function App() {
       <InfoTerminal
         selectedItem={selectedItem}
         onClose={handleCloseTerminal}
-        isDiagnosticMode={chartMode === 'strategy'}
+        isDiagnosticMode={chartMode === 'strategy' || chartMode === 'readiness'}
         isAssessmentMode={chartMode === 'task' && taskMode === 'assess'}
         onDecision={handleTaskDecision}
       />
@@ -392,12 +464,33 @@ function App() {
         />
       )}
 
+      {/* Readiness Report Generator */}
+      {chartMode === 'readiness' && (
+        <ReadinessReportGenerator
+          isComplete={readinessComplete}
+          onGenerate={() => setShowReadinessReport(true)}
+          pathSummary={getReadinessSummary()}
+        />
+      )}
+
       {/* Survival Blueprint Modal */}
       {showBlueprint && (
         <SurvivalBlueprint
           pathSummary={getPathSummary()}
           onClose={handleCloseBlueprint}
           onReset={handleResetDiagnostic}
+        />
+      )}
+
+      {showReadinessReport && (
+        <ReadinessReport
+          pathSummary={getReadinessSummary()}
+          onClose={() => setShowReadinessReport(false)}
+          onReset={() => {
+            resetReadinessDiagnostic();
+            setShowReadinessReport(false);
+            setSelectedItem(null);
+          }}
         />
       )}
 
