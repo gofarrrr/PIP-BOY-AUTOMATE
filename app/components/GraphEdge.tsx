@@ -1,5 +1,6 @@
 import React from 'react';
 import { FlowEdge, FlowNode } from '../types';
+import type { VisibilityState } from '../hooks/useProgressiveReveal';
 
 interface GraphEdgeProps {
   edge: FlowEdge;
@@ -9,6 +10,7 @@ interface GraphEdgeProps {
   isSelected: boolean;
   isVisited?: boolean;
   renderPart?: 'path' | 'label'; // New prop to control layering
+  visibilityState?: VisibilityState;
 }
 
 const GraphEdge: React.FC<GraphEdgeProps> = ({
@@ -18,8 +20,12 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
   onClick,
   isSelected,
   isVisited = false,
-  renderPart = 'path'
+  renderPart = 'path',
+  visibilityState = 'revealed'
 }) => {
+  const isHidden = visibilityState === 'hidden';
+  const isTeaser = visibilityState === 'teaser';
+
   const startX = fromNode.x * 10;
   const startY = fromNode.y * 10;
   const endX = toNode.x * 10;
@@ -78,9 +84,46 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
     labelY += edge.labelOffset.y * 10;
   }
 
-  const strokeColor = isSelected ? '#ffb000' : (isVisited ? '#33ff00' : '#33ff00');
-  const strokeWidth = isSelected ? 4 : (isVisited ? 3 : 2);
-  const opacity = isSelected ? 1 : (isVisited ? 1 : 0.6);
+  // Calculate styles based on visibility state
+  let strokeColor: string;
+  let strokeWidth: number;
+  let opacity: number;
+  let strokeDasharray: string | undefined;
+
+  if (isHidden) {
+    strokeColor = '#33ff00';
+    strokeWidth = 1;
+    opacity = 0.05;
+    strokeDasharray = undefined;
+  } else if (isTeaser) {
+    strokeColor = '#33ff00';
+    strokeWidth = 2;
+    opacity = 0.4;
+    strokeDasharray = '8 4';
+  } else {
+    strokeColor = isSelected ? '#ffb000' : (isVisited ? '#33ff00' : '#33ff00');
+    strokeWidth = isSelected ? 4 : (isVisited ? 3 : 2);
+    opacity = isSelected ? 1 : (isVisited ? 1 : 0.6);
+    strokeDasharray = undefined;
+  }
+
+  // Don't render clickable area for hidden edges
+  if (isHidden) {
+    return (
+      <g style={{ opacity, transition: 'opacity 0.5s ease-out' }}>
+        {renderPart === 'path' && (
+          <path
+            d={d}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            opacity={opacity}
+            className="pointer-events-none"
+          />
+        )}
+      </g>
+    );
+  }
 
   return (
     <g
@@ -89,6 +132,7 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
         e.stopPropagation();
         onClick(edge);
       }}
+      style={{ transition: 'opacity 0.5s ease-out' }}
     >
       {renderPart === 'path' && (
         <>
@@ -106,28 +150,33 @@ const GraphEdge: React.FC<GraphEdgeProps> = ({
             fill="none"
             stroke={strokeColor}
             strokeWidth={strokeWidth}
+            strokeDasharray={strokeDasharray}
             opacity={opacity}
-            markerEnd={`url(#arrowhead-${isSelected ? 'selected' : 'normal'})`}
+            markerEnd={isHidden ? undefined : `url(#arrowhead-${isSelected ? 'selected' : 'normal'})`}
             className="transition-all duration-300 group-hover:stroke-[#ffb000] group-hover:opacity-100 group-hover:stroke-[3px]"
           />
         </>
       )}
 
       {renderPart === 'label' && edge.label && (
-        <g transform={`translate(${labelX}, ${labelY})`}>
+        <g
+          transform={`translate(${labelX}, ${labelY})`}
+          style={{ opacity: isTeaser ? 0.6 : 1 }}
+        >
           {/* Label Background - Opaque Black to hide crossing lines */}
           <rect
             x="-26" y="-18" width="52" height="36"
             fill="#0a0a0a"
-            stroke={isSelected ? "#ffb000" : "#33ff00"}
+            stroke={isTeaser ? "#33ff00" : (isSelected ? "#ffb000" : "#33ff00")}
             strokeWidth="2"
+            strokeDasharray={isTeaser ? "4 2" : undefined}
             rx="4"
             className="group-hover:stroke-[#ffb000] transition-colors"
           />
           <text
             textAnchor="middle"
             dominantBaseline="middle"
-            fill={isSelected ? "#ffb000" : "#33ff00"}
+            fill={isTeaser ? "#33ff0088" : (isSelected ? "#ffb000" : "#33ff00")}
             fontSize="24"
             fontWeight="bold"
             className="font-vt323 select-none group-hover:fill-[#ffb000] pointer-events-none"

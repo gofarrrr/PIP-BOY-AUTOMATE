@@ -30,7 +30,7 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
   `;
 
     return (
-        <div className="absolute bottom-6 left-6 z-40 flex flex-col gap-1">
+        <div className="absolute bottom-6 left-6 z-50 flex flex-col gap-1">
             {/* Zoom In Button */}
             <button
                 onClick={onZoomIn}

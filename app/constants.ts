@@ -229,8 +229,8 @@ export const EDGES: FlowEdge[] = [
   },
   // 8. Complex -> No -> Automate
   {
-    id: 'e8', from: 'complex', to: 'automate', label: 'No', pathType: 'curved', controlPoints: [[0, 60], [0, 150]], // Sweep left
-    labelPosition: 0.6,
+    id: 'e8', from: 'complex', to: 'automate', label: 'No', pathType: 'curved', controlPoints: [[25, 80], [15, 140]], // Narrower sweep left
+    labelPosition: 0.4,
     description: {
       why: "SIMPLE TASK DETECTED. No complexity, no brain required. But simple logic with inaccessible data is still a trap.",
       evaluate: "Perfect candidate for full automation—IF the data flows through systems, not people. Check: can a script access what it needs, or is someone copy-pasting?",
@@ -313,8 +313,8 @@ export const EDGES: FlowEdge[] = [
   },
   // 16. Risk -> Yes -> Augment
   {
-    id: 'e16', from: 'risk', to: 'augment', label: 'Yes', pathType: 'curved', controlPoints: [[50, 120]], // Curve under success, over judgment? No, through gap.
-    labelPosition: 0.5,
+    id: 'e16', from: 'risk', to: 'augment', label: 'Yes', pathType: 'curved', controlPoints: [[55, 125]], // Curve right through gap
+    labelPosition: 0.6,
     description: {
       why: "DANGER ZONE. High risk of failure means no unattended systems. But high-risk doesn't mean no-tech—it means supervised tech.",
       evaluate: "Keep a human in the driver's seat. Use hybrid automation: the system handles grunt work, human approves critical steps. Airlines autopilot most flights, but pilots handle takeoff and landing.",

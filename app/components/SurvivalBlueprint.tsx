@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PathSummary } from '../hooks/useDiagnosticPath';
+import { getRelevantInsight } from '../utils/strategyInsightUtils';
+import InsightCard from './InsightCard';
 
 interface SurvivalBlueprintProps {
     pathSummary: PathSummary;
@@ -96,6 +98,15 @@ const SurvivalBlueprint: React.FC<SurvivalBlueprintProps> = ({
     const outcome = pathSummary.outcome || 'efficiency';
     const blueprint = OUTCOME_BLUEPRINTS[outcome] || OUTCOME_BLUEPRINTS.efficiency;
 
+    // Resolve Reshuffle Insight
+    const reshuffleInsight = useMemo(() => {
+        const decisionMap = pathSummary.decisions.reduce((acc, curr) => {
+            acc[curr.nodeId] = curr.choice;
+            return acc;
+        }, {} as Record<string, string>);
+        return getRelevantInsight(decisionMap);
+    }, [pathSummary]);
+
     const severityColors = {
         green: 'border-[#33ff00] bg-[#33ff00]/10',
         yellow: 'border-[#ffb000] bg-[#ffb000]/10',
@@ -140,6 +151,11 @@ const SurvivalBlueprint: React.FC<SurvivalBlueprintProps> = ({
                         <p className="text-white/90 text-xl leading-relaxed">
                             {blueprint.diagnosis}
                         </p>
+
+                        {/* TACTICAL INSIGHT INJECTION */}
+                        {reshuffleInsight && (
+                            <InsightCard insight={reshuffleInsight} />
+                        )}
                     </div>
 
                     {/* Action Plan */}

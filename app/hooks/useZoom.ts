@@ -10,8 +10,8 @@ export interface ViewBox {
 
 // Zoom levels with corresponding viewBox widths
 const ZOOM_LEVELS = [1000, 700, 500, 350, 200]; // Level 0 = full, Level 4 = max zoom
-const DEFAULT_VIEWBOX: ViewBox = { x: 0, y: 0, width: 1000, height: 1800 };
-const ASPECT_RATIO = 1800 / 1000; // height/width ratio of the flowchart
+const DEFAULT_VIEWBOX: ViewBox = { x: 0, y: -50, width: 1000, height: 2000 };
+const ASPECT_RATIO = 2000 / 1000; // height/width ratio of the flowchart
 
 interface UseZoomReturn {
     viewBox: ViewBox;
@@ -69,11 +69,11 @@ export function useZoom(): UseZoomReturn {
     // Clamp viewBox to bounds
     const clampViewBox = useCallback((vb: ViewBox): ViewBox => {
         const maxX = Math.max(0, 1000 - vb.width);
-        const maxY = Math.max(0, 1800 - vb.height);
+        const maxY = Math.max(-50, 1950 - vb.height); // -50 to 1950 range for 2000 total height
         return {
             ...vb,
             x: Math.max(0, Math.min(vb.x, maxX)),
-            y: Math.max(0, Math.min(vb.y, maxY)),
+            y: Math.max(-50, Math.min(vb.y, maxY)),
         };
     }, []);
 

@@ -18,6 +18,7 @@ const InfoTerminal: React.FC<InfoTerminalProps> = ({
   isAssessmentMode = false
 }) => {
   const [displayedText, setDisplayedText] = useState({ why: '', evaluate: '', read: '' });
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Section headers - different for diagnostic mode
   const headers = isDiagnosticMode
@@ -63,79 +64,96 @@ const InfoTerminal: React.FC<InfoTerminalProps> = ({
     return () => { isCancelled = true; };
   }, [description]);
 
+  // Empty state: show minimized waiting indicator
   if (!data || !description) {
     return (
-      <div className="absolute bottom-4 right-4 w-96 h-64 border-2 border-[#33ff00] bg-black/90 p-4 rounded-lg shadow-[0_0_15px_rgba(51,255,0,0.3)] flex items-center justify-center pointer-events-none">
-        <p className="text-[#33ff00] animate-pulse text-xl text-center">
-          {'>'} WAITING FOR INPUT...<br />
-          {'>'} SELECT NODE OR PATH
-        </p>
+      <div className="fixed top-20 right-0 z-40 flex items-stretch font-vt323">
+        {/* Collapsed tab when no selection */}
+        <div className="bg-[#33ff00]/10 border-l-2 border-y-2 border-[#33ff00]/50 px-2 py-4 flex items-center justify-center rounded-l-sm">
+          <span className="text-[#33ff00]/60 text-sm writing-vertical animate-pulse">[AWAITING INPUT]</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="absolute bottom-4 right-4 w-full max-w-md md:max-w-lg border-2 border-[#33ff00] bg-black/95 p-1 rounded-sm shadow-[0_0_20px_rgba(51,255,0,0.4)] z-40 flex flex-col font-vt323">
-      {/* Header */}
-      <div className="bg-[#33ff00] text-black px-2 py-1 flex justify-between items-center font-bold text-lg">
-        <span className="truncate max-w-[80%]">V.A.T.S.: {label.replace(/\n/g, ' ')}</span>
-        <button onClick={onClose} className="hover:bg-black hover:text-[#33ff00] px-2 font-bold pointer-events-auto">X</button>
-      </div>
+    <div
+      className={`fixed top-20 right-0 z-40 flex items-stretch transition-transform duration-300 ease-out font-vt323 ${isCollapsed ? 'translate-x-[calc(100%-2.5rem)]' : 'translate-x-0'
+        }`}
+      style={{ maxHeight: 'calc(100vh - 120px)' }}
+    >
+      {/* Collapse/Expand Tab */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="bg-[#33ff00] text-black px-1 py-4 flex items-center justify-center hover:bg-[#33ff00]/80 transition-colors rounded-l-sm border-2 border-r-0 border-[#33ff00] self-start mt-4"
+        title={isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
+      >
+        <span className="text-lg font-bold">{isCollapsed ? '«' : '»'}</span>
+      </button>
 
-      {/* Content */}
-      <div className="p-4 space-y-4 overflow-y-auto max-h-[60vh] md:max-h-80 text-[#33ff00]">
-        <div>
-          <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.why}</h3>
-          <p className="leading-6 text-2xl opacity-90">{displayedText.why}<span className="animate-pulse">_</span></p>
+      {/* Main Drawer Panel */}
+      <div className="w-80 md:w-96 border-2 border-[#33ff00] bg-black/95 rounded-l-sm shadow-[0_0_20px_rgba(51,255,0,0.4)] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-[#33ff00] text-black px-3 py-2 flex justify-between items-center font-bold text-lg shrink-0">
+          <span className="truncate max-w-[80%]">V.A.T.S.: {label.replace(/\\n|\n/g, ' ')}</span>
+          <button onClick={onClose} className="hover:bg-black hover:text-[#33ff00] px-2 font-bold">X</button>
         </div>
 
-        {displayedText.why.length === description.why.length && (
+        {/* Content - Scrollable */}
+        <div className="p-4 space-y-4 overflow-y-auto flex-1 text-[#33ff00]">
           <div>
-            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.evaluate}</h3>
-            <p className="leading-6 text-2xl opacity-90">{displayedText.evaluate}</p>
+            <h3 className="border-b border-[#33ff00]/50 mb-1 text-lg font-bold">{'>>'} {headers.why}</h3>
+            <p className="leading-6 text-xl opacity-90">{displayedText.why}<span className="animate-pulse">_</span></p>
           </div>
-        )}
 
-        {displayedText.evaluate.length === description.evaluate.length && (
-          <div>
-            <h3 className="border-b border-[#33ff00]/50 mb-1 text-xl">{'>'}{'>'}  {headers.read}</h3>
-            <p className="leading-6 text-2xl opacity-90">{displayedText.read}</p>
-          </div>
-        )}
+          {displayedText.why.length === description.why.length && (
+            <div>
+              <h3 className="border-b border-[#33ff00]/50 mb-1 text-lg font-bold">{'>>'} {headers.evaluate}</h3>
+              <p className="leading-6 text-xl opacity-90">{displayedText.evaluate}</p>
+            </div>
+          )}
 
-        {/* Tactical Prompt / Toolbox */}
-        {description.tactic && displayedText.read.length === description.read.length && (
-          <div className="animate-in fade-in duration-700">
-            <CopyableTactic
-              label={description.tactic.label}
-              content={description.tactic.content}
-            />
-          </div>
-        )}
+          {displayedText.evaluate.length === description.evaluate.length && (
+            <div>
+              <h3 className="border-b border-[#33ff00]/50 mb-1 text-lg font-bold">{'>>'} {headers.read}</h3>
+              <p className="leading-6 text-xl opacity-90">{displayedText.read}</p>
+            </div>
+          )}
 
-        {/* Assessment Decisions */}
-        {isAssessmentMode && onDecision && selectedItem?.type === 'node' && (selectedItem.data as FlowNode).type === 'decision' && displayedText.read.length === description.read.length && (
-          <div className="flex gap-4 pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <button
-              onClick={() => onDecision('yes')}
-              className="flex-1 bg-[#33ff00] text-black font-bold py-3 text-2xl hover:bg-[#33ff00]/80 transition-all border-2 border-[#33ff00]"
-            >
-              [YES]
-            </button>
-            <button
-              onClick={() => onDecision('no')}
-              className="flex-1 border-2 border-[#33ff00] text-[#33ff00] font-bold py-3 text-2xl hover:bg-[#33ff00]/20 transition-all"
-            >
-              [NO]
-            </button>
-          </div>
-        )}
-      </div>
+          {/* Tactical Prompt / Toolbox */}
+          {description.tactic && displayedText.read.length === description.read.length && (
+            <div className="animate-in fade-in duration-700">
+              <CopyableTactic
+                label={description.tactic.label}
+                content={description.tactic.content}
+              />
+            </div>
+          )}
 
-      {/* Footer Decoration */}
-      <div className="p-2 text-xs text-[#33ff00]/60 flex justify-between border-t border-[#33ff00]/30">
-        <span>MEM: 64KB OK</span>
-        <span>ROBCO INDUSTRIES (TM)</span>
+          {/* Assessment Decisions */}
+          {isAssessmentMode && onDecision && selectedItem?.type === 'node' && (selectedItem.data as FlowNode).type === 'decision' && displayedText.read.length === description.read.length && (
+            <div className="flex gap-4 pt-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <button
+                onClick={() => onDecision('yes')}
+                className="flex-1 bg-[#33ff00] text-black font-bold py-3 text-xl hover:bg-[#33ff00]/80 transition-all border-2 border-[#33ff00]"
+              >
+                [YES]
+              </button>
+              <button
+                onClick={() => onDecision('no')}
+                className="flex-1 border-2 border-[#33ff00] text-[#33ff00] font-bold py-3 text-xl hover:bg-[#33ff00]/20 transition-all"
+              >
+                [NO]
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Decoration */}
+        <div className="p-2 text-xs text-[#33ff00]/60 flex justify-between border-t border-[#33ff00]/30 shrink-0">
+          <span>MEM: 64KB OK</span>
+          <span>ROBCO INDUSTRIES (TM)</span>
+        </div>
       </div>
     </div>
   );

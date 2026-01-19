@@ -339,3 +339,74 @@ export const STRATEGY_NODE_LABELS: Record<string, string> = {
     invest_talent: 'Invest in Talent',
     death_trap: 'Death Trap'
 };
+
+
+
+export interface TacticalInsight {
+    id: string;
+    title: string;
+    icon: string;
+    trigger: string; // Description of why this unlocked
+    concept: string; // The "Mental Model"
+    warning: string; // The "Trap"
+    advice: string; // The "Action"
+}
+
+export const TACTICAL_INSIGHTS: Record<string, TacticalInsight> = {
+    sommelier: {
+        id: 'sommelier',
+        title: 'THE SOMMELIER STRATEGY',
+        icon: '🍷',
+        trigger: 'TRACK: Digital + Judgment',
+        concept: "The Sommelier solves Choice Overload. When data is cheap (infinite wine info), the value shifts to *confidence* in the choice. You aren't selling the wine; you're selling the relief of not having to choose.",
+        warning: "Don't sell 'better data' or 'more analysis'. That's the commodity you're trying to escape.",
+        advice: "Shift your billing model. Stop charging for the 'deliverable' (the bottle) and start charging for the 'selection' (the cure for anxiety)."
+    },
+    nurse_navigator: {
+        id: 'nurse_navigator',
+        title: 'THE NURSE NAVIGATOR',
+        icon: '🧭',
+        trigger: 'TRACK: Service + Coordination',
+        concept: "The Nurse Navigator solves Coordination Gaps. In a fragmented system (hospital), the value isn't the treatment (commodity); it's the *translation* between siloed specialists. You are the API layer between incompatible human systems.",
+        warning: "Don't try to be the specialist. The specialist is being automated. Be the glue.",
+        advice: "Focus on 'Journey Management'. Your product is the seamless experience across the fragmented mess of vendors your client uses."
+    },
+    coordination_tax: {
+        id: 'coordination_tax',
+        title: 'COORDINATION WITHOUT CONSENSUS',
+        icon: '🔗',
+        trigger: 'TRACK: Mid-tier + Lean',
+        concept: "Traditional coordination requires meetings (high tax) or standards (impossible consensus). AI allows 'Coordination without Consensus' by ingesting messy, unstructured updates from everyone and aligning them automatically.",
+        warning: "Stop trying to get everyone to use the same dashboard. They won't.",
+        advice: "Build an 'Ingestion Layer' that accepts messy inputs (voice notes, emails, slack) and uses AI to update the central source of truth. Destroy the status meeting."
+    },
+    reskilling_fallacy: {
+        id: 'reskilling_fallacy',
+        title: 'THE RESKILLING FALLACY',
+        icon: '⚠️',
+        trigger: 'TRACK: Physical + Efficiency',
+        concept: "The trap is learning to do the *task* faster (e.g., typing) just as the task is disappearing. Real security comes from learning to manage the *constraint* that remains (e.g., liability/risk).",
+        warning: "Don't retrain your team on 'Prompt Engineering' for tasks that shouldn't exist.",
+        advice: "Audit your training. If you're teaching people to drive the tractor better, stop. Teach them to manage the fleet of autonomous tractors."
+    },
+    vibe_coding: {
+        id: 'vibe_coding',
+        title: 'THE VIBE CODING TRAP',
+        icon: '🎭',
+        trigger: 'TRACK: Digital + Contestable + Production',
+        concept: "'Vibe Coding' is producing impressive-looking outputs (code, copy, art) that lack structural logic. It works for a demo but fails in production. It creates a 'Debt Spiral' where you own code you don't understand.",
+        warning: "If you can't debug it, you don't own it. You are renting it from the AI.",
+        advice: " enforces 'Explanation Gates'. No AI code ships unless the human can explain *why* it works. Shift from 'Coder' to 'Code Auditor'."
+    },
+    maginot_line: {
+        id: 'maginot_line',
+        title: 'THE MAGINOT LINE',
+        icon: '🏰',
+        trigger: 'TRACK: Protected Market',
+        concept: "You feel safe because of your moat (distribution/regulation). But AI doesn't attack your wall; it drains the ocean around it. It changes the context so much that your wall becomes irrelevant.",
+        warning: "Your moat protects you from *competitors*, not from *obsolescence*.",
+        advice: "Use your safety to attack yourself. Spin out a 'Red Team' whose only job is to figure out how to make your core product unnecessary."
+    }
+};
+
+

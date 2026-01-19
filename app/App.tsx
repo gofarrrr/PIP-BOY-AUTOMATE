@@ -14,10 +14,11 @@ import { KNOWLEDGE_NODES, KNOWLEDGE_EDGES } from './constants-knowledge';
 import { MISTAKES_NODES, MISTAKES_EDGES } from './constants-mistakes';
 import { READINESS_NODES, READINESS_EDGES } from './constants-readiness';
 import { useDiagnosticPath } from './hooks/useDiagnosticPath';
-import { useMistakesAudit } from './hooks/useMistakesAudit';
+import { useMistakesAudit, MISTAKE_QUESTIONS, MistakeId } from './hooks/useMistakesAudit';
 import { useTaskAssessment } from './hooks/useTaskAssessment';
 import { useKnowledgePlaybook } from './hooks/useKnowledgePlaybook';
 import { useReadinessDiagnostic } from './hooks/useReadinessDiagnostic';
+import { useProgressiveReveal } from './hooks/useProgressiveReveal';
 import TaskNameOverlay from './components/TaskNameOverlay';
 import TaskVerdict from './components/TaskVerdict';
 import KnowledgeLifecycleHUD from './components/KnowledgeLifecycleHUD';
@@ -54,6 +55,27 @@ function App() {
     isComplete: auditComplete,
   } = useMistakesAudit();
   const [showAuditReport, setShowAuditReport] = useState(false);
+
+  // Compute node highlights for MISTAKES mode based on audit responses
+  const mistakesNodeHighlights = React.useMemo(() => {
+    if (chartMode !== 'mistakes') return {};
+
+    const highlights: Record<string, 'issue' | 'healthy' | 'solution'> = {};
+
+    MISTAKE_QUESTIONS.forEach((q) => {
+      const response = auditResponses[q.id as MistakeId];
+      if (response === false) {
+        // Issue: mark question node as issue, solution node as solution
+        highlights[q.id] = 'issue';
+        highlights[q.solutionId] = 'solution';
+      } else if (response === true) {
+        // Healthy: mark question node as healthy
+        highlights[q.id] = 'healthy';
+      }
+    });
+
+    return highlights;
+  }, [chartMode, auditResponses]);
 
   // Task Assessment state
   const {
@@ -101,6 +123,22 @@ function App() {
   } = useReadinessDiagnostic();
   const [showReadinessReport, setShowReadinessReport] = useState(false);
 
+  // Progressive Reveal for Strategy mode
+  const {
+    revealNode: revealStrategyNode,
+    resetReveal: resetStrategyReveal,
+    nodeVisibilityMap: strategyNodeVisibility,
+    edgeVisibilityMap: strategyEdgeVisibility,
+  } = useProgressiveReveal(STRATEGY_NODES, STRATEGY_EDGES, 'atoms');
+
+  // Progressive Reveal for Readiness mode
+  const {
+    revealNode: revealReadinessNode,
+    resetReveal: resetReadinessReveal,
+    nodeVisibilityMap: readinessNodeVisibility,
+    edgeVisibilityMap: readinessEdgeVisibility,
+  } = useProgressiveReveal(READINESS_NODES, READINESS_EDGES, 'assess');
+
   // Zoom to phase cluster when selected
   useEffect(() => {
     // We need a ref to the zoomToViewBox or similar if we want to zoom from here.
@@ -128,25 +166,29 @@ function App() {
   const handleSelect = (item: SelectedItem) => {
     setSelectedItem(item);
 
-    // Track diagnostic path in Strategy mode
+    // Track diagnostic path in Strategy mode + progressive reveal
     if (chartMode === 'strategy') {
       if (item.type === 'node') {
         recordNodeVisit(item.data.id);
+        revealStrategyNode(item.data.id); // Reveal the node and its adjacents
       } else if (item.type === 'edge') {
         const edge = item.data as FlowEdge;
         const choice = edge.label?.toLowerCase() === 'yes' ? 'yes' : 'no';
         recordDecision(edge.from, choice);
+        revealStrategyNode(edge.to); // Reveal the destination node
       }
     }
 
-    // Track diagnostic path in Readiness mode
+    // Track diagnostic path in Readiness mode + progressive reveal
     if (chartMode === 'readiness') {
       if (item.type === 'node') {
         recordReadinessVisit(item.data.id);
+        revealReadinessNode(item.data.id);
       } else if (item.type === 'edge') {
         const edge = item.data as FlowEdge;
         const choice = edge.label?.toLowerCase() || 'yes';
         recordReadinessDecision(edge.from, choice);
+        revealReadinessNode(edge.to);
       }
     }
   };
@@ -161,6 +203,7 @@ function App() {
 
   const handleResetDiagnostic = () => {
     resetDiagnostic();
+    resetStrategyReveal(); // Reset progressive reveal
     setShowBlueprint(false);
   };
 
@@ -409,6 +452,19 @@ function App() {
                 chartMode === 'readiness' ? readinessState.visitedNodes[readinessState.visitedNodes.length - 1] : null
           }
           zoomArea={chartMode === 'knowledge' && activePhase ? knowledgePhases.find(p => p.id === activePhase)?.zoomTarget : null}
+          nodeVisibility={
+            chartMode === 'strategy' ? strategyNodeVisibility :
+              chartMode === 'readiness' ? readinessNodeVisibility : undefined
+          }
+          edgeVisibility={
+            chartMode === 'strategy' ? strategyEdgeVisibility :
+              chartMode === 'readiness' ? readinessEdgeVisibility : undefined
+          }
+          startNodeId={
+            chartMode === 'strategy' ? 'atoms' :
+              chartMode === 'readiness' ? 'assess' : null
+          }
+          nodeHighlights={chartMode === 'mistakes' ? mistakesNodeHighlights : {}}
         />
       </main>
 

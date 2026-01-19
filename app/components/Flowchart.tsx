@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { SelectedItem, FlowNode, FlowEdge } from '../types';
 import GraphNode from './GraphNode';
+import type { NodeHighlightType } from './GraphNode';
 import GraphEdge from './GraphEdge';
 import ZoomControls from './ZoomControls';
 import { useZoom } from '../hooks/useZoom';
+import type { VisibilityState } from '../hooks/useProgressiveReveal';
 
 interface FlowchartProps {
   nodes: FlowNode[];
@@ -15,6 +17,10 @@ interface FlowchartProps {
   visitedEdges?: string[];
   currentNodeId?: string | null;
   zoomArea?: { x: number; y: number; width: number; height: number } | null;
+  nodeVisibility?: Record<string, VisibilityState>;
+  edgeVisibility?: Record<string, VisibilityState>;
+  startNodeId?: string | null; // Auto-zoom to this node on load
+  nodeHighlights?: Record<string, NodeHighlightType>; // Highlight states for nodes
 }
 
 const Flowchart: React.FC<FlowchartProps> = ({
@@ -25,7 +31,11 @@ const Flowchart: React.FC<FlowchartProps> = ({
   visitedNodes = [],
   visitedEdges = [],
   currentNodeId = null,
-  zoomArea = null
+  zoomArea = null,
+  nodeVisibility,
+  edgeVisibility,
+  startNodeId = null,
+  nodeHighlights = {},
 }) => {
   const {
     viewBox,
@@ -45,6 +55,20 @@ const Flowchart: React.FC<FlowchartProps> = ({
     }
   }, [zoomArea, zoomToArea]);
 
+  // Auto-zoom to start node when entering progressive reveal mode
+  useEffect(() => {
+    if (startNodeId) {
+      const startNode = nodes.find(n => n.id === startNodeId);
+      if (startNode) {
+        // Small delay to ensure component is mounted and visible
+        const timer = setTimeout(() => {
+          zoomToNode(startNode);
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [startNodeId, nodes, zoomToNode]);
+
   const handleNodeClick = (node: FlowNode) => {
     onSelect({ type: 'node', data: node });
     zoomToNode(node);
@@ -58,7 +82,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
       <svg
         viewBox={viewBoxString}
         className="w-full h-full max-w-[1200px] max-h-[1200px]"
-        preserveAspectRatio="xMidYMin meet"
+        preserveAspectRatio="xMidYMid meet"
         onWheel={handleWheel}
         style={{ cursor: zoomLevel > 0 ? 'grab' : 'default' }}
       >
@@ -92,6 +116,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
           const isVisited = visitedEdges.includes(edge.id);
+          const visibility = edgeVisibility?.[edge.id] || 'revealed';
           return (
             <GraphEdge
               key={`path-${edge.id}`}
@@ -102,6 +127,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
               isSelected={isSelected}
               isVisited={isVisited}
               renderPart="path"
+              visibilityState={visibility}
             />
           );
         })}
@@ -111,6 +137,8 @@ const Flowchart: React.FC<FlowchartProps> = ({
           const isSelected = selectedItem?.type === 'node' && selectedItem.data.id === node.id;
           const isVisited = visitedNodes.includes(node.id);
           const isCurrent = currentNodeId === node.id;
+          const visibility = nodeVisibility?.[node.id] || 'revealed';
+          const highlight = nodeHighlights[node.id] || null;
           return (
             <GraphNode
               key={node.id}
@@ -118,6 +146,8 @@ const Flowchart: React.FC<FlowchartProps> = ({
               onClick={handleNodeClick}
               isSelected={isSelected || isCurrent}
               isVisited={isVisited && !isCurrent}
+              visibilityState={visibility}
+              highlightType={highlight}
             />
           );
         })}
@@ -129,6 +159,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
           if (!from || !to) return null;
           const isSelected = selectedItem?.type === 'edge' && selectedItem.data.id === edge.id;
           const isVisited = visitedEdges.includes(edge.id);
+          const visibility = edgeVisibility?.[edge.id] || 'revealed';
           return (
             <GraphEdge
               key={`label-${edge.id}`}
@@ -139,6 +170,7 @@ const Flowchart: React.FC<FlowchartProps> = ({
               isSelected={isSelected}
               isVisited={isVisited}
               renderPart="label"
+              visibilityState={visibility}
             />
           );
         })}

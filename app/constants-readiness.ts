@@ -13,7 +13,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Assessing AI\\nReadiness',
         type: 'decision',
         x: 50,
-        y: 3,
+        y: 5,
         color: 'blue',
         description: {
             why: "READINESS ASSESSMENT: Before chasing AI pilots and agent deployments, you need to know where your organization actually stands. Based on interviews with over 1,000 executives, the average readiness score is 52.1 out of 100—firmly in the 'Pilot' category. 58% of organizations are stuck at the low end of that range. This diagnostic will identify your archetype and prescribe your next steps.",
@@ -28,7 +28,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Executive AI\\nMandate?',
         type: 'decision',
         x: 50,
-        y: 20,
+        y: 32,
         color: 'blue',
         description: {
             why: "TOP-DOWN CHECK: Executive commitment is one of the top enablers we see across successful AI adoptions. Without it, AI becomes a side project rather than a strategic priority. But 'mandate' means more than verbal encouragement—it requires budget, time allocation, and realistic expectations.",
@@ -41,7 +41,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Grassroots\\nActivity?',
         type: 'decision',
         x: 20,
-        y: 38,
+        y: 60,
         color: 'blue',
         description: {
             why: "BOTTOM-UP CHECK: Even without executive mandate, some organizations have pockets of AI experimentation. Employees using ChatGPT, teams building custom GPTs, individuals automating their workflows. This grassroots energy is valuable—but without coordination, it creates shadow AI and inconsistent quality.",
@@ -54,7 +54,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Central AI\\nGovernance?',
         type: 'decision',
         x: 50,
-        y: 38,
+        y: 60,
         color: 'blue',
         description: {
             why: "GOVERNANCE CHECK: Organizations with established AI governance frameworks are 6.6% more agent-ready on average. This isn't just about rules—it's about creating safe space for experimentation. Central governance means someone OWNS AI, there's written policy, and people know what's permitted.",
@@ -67,7 +67,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Data\\nAccessible?',
         type: 'decision',
         x: 50,
-        y: 56,
+        y: 90,
         color: 'blue',
         description: {
             why: "DATA CHECK: Data fragmentation is the #1 blocker across all our interviews—even ahead of skills and budget. Internal data is the ONLY thing that differentiates successful AI adoption. But most orgs have it trapped in emails, spreadsheets, and people's heads. One company spent a quarter just collecting documents—the AI build took two weeks.",
@@ -80,7 +80,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Risk\\nAppetite?',
         type: 'decision',
         x: 50,
-        y: 74,
+        y: 118,
         color: 'blue',
         description: {
             why: "CULTURE CHECK: Some organizations prioritize governance and security so heavily that experimentation becomes impossible. Common in regulated industries—finance, healthcare, legal. Their caution may be appropriate, but it can create analysis paralysis and competitive lag. The question is whether caution has become paralysis.",
@@ -93,7 +93,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'Quick Wins\\nAchieved?',
         type: 'decision',
         x: 80,
-        y: 74,
+        y: 118,
         color: 'blue',
         description: {
             why: "EXECUTION CHECK: Quick wins are a top enabler across successful organizations. Internal support bots, back-office automation, coding assistants—these build momentum and convert skeptics. The question isn't just 'are you trying things' but 'have you shipped anything that shows ROI?'",
@@ -108,7 +108,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'STATUS:\\nINITIATE',
         type: 'outcome',
         x: 5,
-        y: 50,
+        y: 85,
         color: 'red',
         description: {
             why: "STARTING LINE: You're at zero—no executive mandate, no grassroots experimentation. This isn't failure; it's a clean slate. You can leapfrog organizations stuck in legacy automation patterns. Zero prior automation is actually an advantage—no RPA to unlearn, no legacy to rip out.",
@@ -121,7 +121,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'ARCHETYPE:\\nGRASSROOTS\\nTINKERERS',
         type: 'outcome',
         x: 5,
-        y: 30,
+        y: 48,
         color: 'yellow',
         description: {
             why: "ENERGY WITHOUT DIRECTION: You have bottom-up experimentation but no top-down support. People are using GPTs and copilots on their own initiative, but without mandate, budget, or coordination. This creates shadow AI, duplicated efforts, and inconsistent quality. You're likely at the Pilot stage (50-60) for individual tools, but falling behind on systematic deployment.",
@@ -134,7 +134,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'ARCHETYPE:\\nVISIONARY\\nBOTTLENECK',
         type: 'outcome',
         x: 25,
-        y: 70,
+        y: 110,
         color: 'yellow',
         description: {
             why: "VISION WITHOUT PLUMBING: You have executive excitement but the foundation is broken—either governance is missing, data is fragmented, or both. Leaders push AI tools without understanding ground-level complexity. Employees experience change fatigue from too many pilots that never scale. You're likely at Explorer stage (25-50).",
@@ -147,7 +147,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'ARCHETYPE:\\nCAUTIOUS\\nINCUMBENT',
         type: 'outcome',
         x: 25,
-        y: 88,
+        y: 145,
         color: 'yellow',
         description: {
             why: "GOVERNANCE WITHOUT VELOCITY: You have mandate, governance, and accessible data—but your culture is risk-averse. Common in regulated industries where risk management is paramount. Your caution is often appropriate, but excessive conservatism creates competitive lag. Employees either avoid AI entirely or use it secretly.",
@@ -160,7 +160,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'ARCHETYPE:\\nFOUNDATION\\nBUILDER',
         type: 'outcome',
         x: 60,
-        y: 88,
+        y: 148,
         color: 'yellow',
         description: {
             why: "INFRASTRUCTURE WITHOUT WINS: You have everything in place—mandate, governance, data, experimental culture—but you're focused on building infrastructure rather than shipping value. Strong IT/data team working on lakehouses, gateways, and platforms. Technologically sound but slow to show ROI. Business units grow frustrated.",
@@ -173,7 +173,7 @@ export const READINESS_NODES: FlowNode[] = [
         label: 'STATUS:\\nAGENT READY',
         type: 'outcome',
         x: 90,
-        y: 70,
+        y: 145,
         color: 'green',
         description: {
             why: "ALIGNED AND EXECUTING: Rare status—only a small percentage of organizations reach this. You have executive commitment, central governance, accessible data, experimental culture, AND demonstrated wins. Both top-down and bottom-up are connected and moving together. You're not just ready for AI—you're already delivering value.",
