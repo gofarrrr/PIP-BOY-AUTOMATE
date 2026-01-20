@@ -26,9 +26,9 @@ const GraphNode: React.FC<GraphNodeProps> = ({
   const isHidden = visibilityState === 'hidden';
   const isTeaser = visibilityState === 'teaser';
 
-  // Larger sizes for better readability
-  const width = node.type === 'decision' ? 200 : 220;
-  const height = node.type === 'decision' ? 200 : 90;
+  // Optimized sizes for better spacing and readability
+  const width = node.type === 'decision' ? 180 : 220;
+  const height = node.type === 'decision' ? 180 : 90;
 
   // Terminal colors mapping
   const colors = {
