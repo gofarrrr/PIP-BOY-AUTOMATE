@@ -1,0 +1,174 @@
+/* Editorial Theme - AI or Not.BS Landing Page Aesthetic */
+
+.theme-editorial {
+  /* Colors - Dark Sophisticated Palette */
+  --bg-primary: #1A1916;
+  --bg-secondary: #242220;
+  --bg-tertiary: #0F0E0D;
+  --bg-card: #F5F2ED;
+  --bg-accent: #C87941;
+  --bg-accent-dark: #B5683A;
+
+  /* Text Colors */
+  --text-primary: #F5F2ED;
+  --text-secondary: #888888;
+  --text-tertiary: #666666;
+  --text-dark: #1A1916;
+  --text-accent: #C87941;
+
+  /* Border Colors */
+  --border-primary: #333333;
+  --border-secondary: #444444;
+  --border-light: #666666;
+
+  /* Typography */
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+  --text-4xl: 72px;
+  --text-5xl: 96px;
+
+  /* Spacing */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 80px;
+
+  /* Layout */
+  --container-max: 1440px;
+  --container-padding: 56px;
+
+  /* Effects */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+.theme-editorial .font-display {
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.theme-editorial .font-body {
+  font-family: var(--font-body);
+}
+
+/* Typography Utilities */
+.theme-editorial .text-display {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.theme-editorial .text-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+/* Component Patterns */
+.theme-editorial .card-editorial {
+  background: var(--bg-card);
+  border: none;
+  position: relative;
+}
+
+.theme-editorial .card-accent {
+  background: var(--bg-accent);
+}
+
+.theme-editorial .corner-brackets::before,
+.theme-editorial .corner-brackets::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid currentColor;
+}
+
+.theme-editorial .corner-brackets::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.theme-editorial .corner-brackets::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+/* Button Styles */
+.theme-editorial .btn-primary {
+  background: var(--bg-accent);
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  font-weight: 600;
+  padding: 16px 32px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.theme-editorial .btn-primary:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.theme-editorial .btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 500;
+  padding: 16px 32px;
+  border: 1px solid var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.theme-editorial .btn-secondary:hover {
+  background: rgba(245, 242, 237, 0.1);
+}
+
+/* Section Divider with Diamond */
+.theme-editorial .section-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.theme-editorial .diamond-accent {
+  width: 12px;
+  height: 12px;
+  background: var(--bg-accent);
+  transform: rotate(45deg);
+}
+
+.theme-editorial .diamond-outline {
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  transform: rotate(45deg);
+}
+
+/* Dotted Line Separator */
+.theme-editorial .dotted-line {
+  height: 1px;
+  background: var(--border-secondary);
+  flex: 1;
+}

@@ -1,181 +1,231 @@
 import React from 'react';
 import { FlowNode } from '../types';
 import type { VisibilityState } from '../hooks/useProgressiveReveal';
+import '../themes/optimistic.css';
 
-export type NodeHighlightType = 'issue' | 'healthy' | 'solution' | null;
+// Local type definition (was previously imported from archived GraphNode)
+export type NodeHighlightType = 'issue' | 'solution' | 'healthy' | null;
 
 interface GraphNodeProps {
-  node: FlowNode;
-  onClick: (node: FlowNode) => void;
-  isSelected: boolean;
-  isVisited?: boolean;
-  visibilityState?: VisibilityState;
-  highlightType?: NodeHighlightType;
+    node: FlowNode;
+    onClick: (node: FlowNode) => void;
+    isSelected: boolean;
+    isVisited?: boolean;
+    visibilityState?: VisibilityState;
+    highlightType?: NodeHighlightType;
 }
 
 const GraphNode: React.FC<GraphNodeProps> = ({
-  node,
-  onClick,
-  isSelected,
-  isVisited = false,
-  visibilityState = 'revealed',
-  highlightType = null
+    node,
+    onClick,
+    isSelected,
+    isVisited = false,
+    visibilityState = 'revealed',
+    highlightType = null
 }) => {
-  // Don't render at all if completely hidden (for performance)
-  // But we still want to render a ghost for visual context
-  const isHidden = visibilityState === 'hidden';
-  const isTeaser = visibilityState === 'teaser';
+    const isHidden = visibilityState === 'hidden';
+    const isTeaser = visibilityState === 'teaser';
 
-  // Optimized sizes for better spacing and readability
-  const width = node.type === 'decision' ? 180 : 220;
-  const height = node.type === 'decision' ? 180 : 90;
+    // Parse label first to calculate dynamic sizing
+    const labelLines = node.label.split(/\\n/);
 
-  // Terminal colors mapping
-  const colors = {
-    blue: '#33ff00',
-    green: '#33ff00',
-    yellow: '#ffb000',
-    red: '#ff3333'
-  };
+    // Calculate max line length for dynamic width
+    const maxLineLength = Math.max(...labelLines.map(line => line.length));
 
-  const baseColor = colors[node.color || 'blue'];
+    // Node sizing - DYNAMIC based on text length
+    // Decision nodes = Circle/Pill shape (if short text) or larger Rect
+    const isDecisionNode = node.type === 'decision';
 
-  // Adjust colors based on visibility state
-  let strokeColor: string;
-  let fillColor: string;
-  let shadow: string;
-  let strokeWidth: number;
-  let opacity: number;
-  let strokeDasharray: string | undefined;
+    // Base dimensions - now dynamic
+    // Short labels (< 15 chars): compact
+    // Medium labels (15-25 chars): standard
+    // Long labels (> 25 chars): wide
+    let width: number;
+    let fontSize: number;
 
-  if (isHidden) {
-    // Ghost state - very faint, blurred
-    strokeColor = baseColor;
-    fillColor = '#0a0a0a';
-    shadow = 'none';
-    strokeWidth = 1;
-    opacity = 0.08;
-    strokeDasharray = undefined;
-  } else if (isTeaser) {
-    // Teaser state - visible but muted, dashed border
-    strokeColor = baseColor;
-    fillColor = '#0a0a0a';
-    shadow = `drop-shadow(0 0 3px ${baseColor}33)`;
-    strokeWidth = 2;
-    opacity = 0.5;
-    strokeDasharray = '8 4';
-  } else if (highlightType === 'issue') {
-    // Issue highlight - red glow for problem areas
-    strokeColor = '#ff3333';
-    fillColor = 'rgba(255, 51, 51, 0.15)';
-    shadow = 'drop-shadow(0 0 12px rgba(255, 51, 51, 0.7))';
-    strokeWidth = 3;
-    opacity = 1;
-    strokeDasharray = undefined;
-  } else if (highlightType === 'solution') {
-    // Solution highlight - yellow pulsing glow
-    strokeColor = '#ffb000';
-    fillColor = 'rgba(255, 176, 0, 0.15)';
-    shadow = 'drop-shadow(0 0 15px rgba(255, 176, 0, 0.8))';
-    strokeWidth = 3;
-    opacity = 1;
-    strokeDasharray = undefined;
-  } else if (highlightType === 'healthy') {
-    // Healthy highlight - bright green glow
-    strokeColor = '#33ff00';
-    fillColor = 'rgba(51, 255, 0, 0.2)';
-    shadow = 'drop-shadow(0 0 10px rgba(51, 255, 0, 0.6))';
-    strokeWidth = 3;
-    opacity = 1;
-    strokeDasharray = undefined;
-  } else {
-    // Revealed state - normal behavior
-    strokeColor = isSelected ? '#ffffff' : (isVisited ? '#33ff00' : baseColor);
-    fillColor = isSelected ? `${baseColor}44` : (isVisited ? `${baseColor}22` : '#0a0a0a');
-    shadow = isSelected ? `drop-shadow(0 0 15px ${baseColor})` : (isVisited ? `drop-shadow(0 0 10px ${baseColor}44)` : `drop-shadow(0 0 5px ${baseColor}66)`);
-    strokeWidth = isSelected ? 4 : (isVisited ? 3 : 2);
-    opacity = 1;
-    strokeDasharray = undefined;
-  }
+    if (maxLineLength > 30) {
+        width = isDecisionNode ? 340 : 320;
+        fontSize = 14;
+    } else if (maxLineLength > 20) {
+        width = isDecisionNode ? 300 : 300;
+        fontSize = 15;
+    } else if (maxLineLength > 12) {
+        width = isDecisionNode ? 260 : 280;
+        fontSize = 16;
+    } else {
+        width = isDecisionNode ? 200 : 240;
+        fontSize = 16;
+    }
 
-  // Parse label for line breaks (handles \\n notation)
-  const labelLines = node.label.split(/\\n/);
-  const fontSize = node.type === 'decision' ? 22 : 26;
-  const lineHeight = fontSize * 1.25;
-  // Calculate starting Y so text is vertically centered
-  const startY = -(labelLines.length - 1) * lineHeight / 2;
+    // Height based on number of lines
+    const baseHeight = isDecisionNode ? 80 : 70;
+    const height = baseHeight + (labelLines.length - 1) * 22;
 
-  // For teaser nodes, only show first line with "?"
-  const displayLines = isTeaser
-    ? [labelLines[0] + (labelLines.length > 1 ? '...' : '')]
-    : labelLines;
+    // Theme Variables (mapped from CSS)
+    const colors = {
+        cream: '#F9F8F6',
+        creamDark: '#EBE8E2',
+        green: '#1E3D2F',
+        greenLight: '#4A6359',
+        coral: '#FF6B4A',
+        coralLight: '#FF8F75',
+        lime: '#D4E6B5',
+        white: '#FFFFFF'
+    };
 
-  return (
-    <g
-      onClick={(e) => {
-        e.stopPropagation();
-        // Only allow clicking revealed or teaser nodes
-        if (!isHidden) {
-          onClick(node);
+    // Determine styling based on state
+    let fillColor: string;
+    let strokeColor: string;
+    let textColor: string;
+    let strokeWidth: number;
+    let opacity: number;
+    let shadowOffset: number;
+    let shadowColor: string;
+
+    if (isHidden) {
+        fillColor = colors.creamDark;
+        strokeColor = colors.greenLight;
+        textColor = 'transparent';
+        strokeWidth = 1;
+        opacity = 0.1;
+        shadowOffset = 0;
+        shadowColor = 'transparent';
+    } else if (isTeaser) {
+        fillColor = colors.cream;
+        strokeColor = colors.greenLight;
+        textColor = colors.greenLight;
+        strokeWidth = 2;
+        opacity = 0.5;
+        shadowOffset = 0; // Flat for teaser
+        shadowColor = 'transparent';
+    } else if (highlightType === 'issue') {
+        fillColor = '#FEE2E2';
+        strokeColor = '#EF4444';
+        textColor = '#DC2626';
+        strokeWidth = 3;
+        opacity = 1;
+        shadowOffset = 4;
+        shadowColor = '#EF4444';
+    } else if (highlightType === 'solution' || highlightType === 'healthy') {
+        fillColor = colors.lime;
+        strokeColor = colors.green;
+        textColor = colors.green;
+        strokeWidth = 3;
+        opacity = 1;
+        shadowOffset = 4;
+        shadowColor = colors.green;
+    } else {
+        // Normal / Selected
+        const isResultNode = node.label.toLowerCase().includes('automate') ||
+            node.label.toLowerCase().includes('bits') ||
+            node.label.toLowerCase().includes('hybrid');
+
+        if (isSelected) {
+            fillColor = isResultNode ? colors.coral : colors.white;
+            strokeColor = colors.green;
+            textColor = isResultNode ? colors.white : colors.green;
+            strokeWidth = 3;
+            shadowOffset = 6;
+            shadowColor = colors.green;
+        } else if (isVisited) {
+            // Subtle visited state
+            fillColor = colors.creamDark;
+            strokeColor = colors.green;
+            textColor = colors.green;
+            strokeWidth = 2;
+            shadowOffset = 2;
+            shadowColor = colors.green;
+        } else {
+            // Default
+            fillColor = isResultNode ? colors.coral : colors.white;
+            strokeColor = colors.green;
+            textColor = isResultNode ? colors.white : colors.green;
+            strokeWidth = 2;
+            shadowOffset = 4;
+            shadowColor = colors.green;
         }
-      }}
-      style={{
-        cursor: isHidden ? 'default' : 'pointer',
-        filter: shadow,
-        opacity,
-        transition: 'opacity 0.5s ease-out, filter 0.5s ease-out',
-      }}
-      transform={`translate(${node.x * 10}, ${node.y * 10})`}
-      className={`group ${isHidden ? 'pointer-events-none' : ''}`}
-    >
-      {node.type === 'decision' ? (
-        // Diamond Shape
-        <path
-          d={`M 0 -${height / 2} L ${width / 2} 0 L 0 ${height / 2} L -${width / 2} 0 Z`}
-          fill={fillColor}
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
-          strokeDasharray={strokeDasharray}
-          className="transition-all duration-300"
-        />
-      ) : (
-        // Rectangle Shape
-        <rect
-          x={-width / 2}
-          y={-height / 2}
-          width={width}
-          height={height}
-          rx="10"
-          fill={fillColor}
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
-          strokeDasharray={strokeDasharray}
-          className="transition-all duration-300"
-        />
-      )}
+        opacity = 1;
+    }
 
-      {/* Text Label - using SVG text with tspan for proper line breaks */}
-      <text
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill={isHidden ? `${baseColor}15` : (isTeaser ? `${baseColor}88` : (isSelected ? '#ffffff' : baseColor))}
-        fontSize={fontSize}
-        fontWeight="bold"
-        className="font-vt323 select-none pointer-events-none"
-        style={{ letterSpacing: '0.05em' }}
-      >
-        {displayLines.map((line, i) => (
-          <tspan
-            key={i}
-            x="0"
-            dy={i === 0 ? startY : lineHeight}
-          >
-            {line}
-          </tspan>
-        ))}
-      </text>
-    </g>
-  );
+    // Font/line calculations using the dynamic fontSize from above
+    const lineHeight = fontSize * 1.3;
+    const startY = -(labelLines.length - 1) * lineHeight / 2;
+
+    // Truncate for teaser
+    const displayLines = isTeaser
+        ? [labelLines[0] + (labelLines.length > 1 ? '...' : '')]
+        : labelLines;
+
+    const GRID_SCALE = 22;
+
+    return (
+        <g
+            onClick={(e) => {
+                e.stopPropagation();
+                if (!isHidden) onClick(node);
+            }}
+            style={{
+                cursor: isHidden ? 'default' : 'pointer',
+                opacity,
+                transition: 'all 0.3s cubic-bezier(0.25, 1, 0.5, 1)',
+            }}
+            transform={`translate(${node.x * GRID_SCALE}, ${node.y * GRID_SCALE})`}
+            className={`group ${isHidden ? 'pointer-events-none' : ''}`}
+        >
+            {/* Hard Shadow (Offset Rect/Circle) */}
+            {!isHidden && !isTeaser && (
+                <rect
+                    x={(-width / 2) + shadowOffset}
+                    y={(-height / 2) + shadowOffset}
+                    width={width}
+                    height={height}
+                    rx={isDecisionNode ? height / 2 : 12} // Pill for decisions, rounded rect for results
+                    fill={shadowColor}
+                    className="transition-all duration-300"
+                />
+            )}
+
+            {/* Main Shape */}
+            <rect
+                x={-width / 2}
+                y={-height / 2}
+                width={width}
+                height={height}
+                rx={isDecisionNode ? height / 2 : 12}
+                fill={fillColor}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                strokeDasharray={isTeaser ? "6 4" : undefined}
+                className="transition-all duration-300 group-hover:translate-x-[-2px] group-hover:translate-y-[-2px]"
+            />
+
+            {/* Label - Optimistic Typography */}
+            <text
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={textColor}
+                fontSize={fontSize}
+                fontWeight="600"
+                fontFamily="Outfit, sans-serif"
+                className="select-none pointer-events-none group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] transition-transform duration-300"
+            >
+                {displayLines.map((line, i) => (
+                    <tspan
+                        key={i}
+                        x="0"
+                        dy={i === 0 ? startY : lineHeight}
+                    >
+                        {line}
+                    </tspan>
+                ))}
+            </text>
+
+            {/* Decorative 'plus' or icon for selected items could go here */}
+            {isSelected && (
+                <circle cx={width / 2 - 15} cy={-height / 2 + 15} r="4" fill={colors.coral} />
+            )}
+        </g>
+    );
 };
 
 export default GraphNode;

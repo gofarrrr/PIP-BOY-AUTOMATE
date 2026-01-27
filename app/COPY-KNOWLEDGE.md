@@ -18,6 +18,10 @@ This document contains all the text content (copy) that is presented to users wh
 > **EXECUTION**  
 > Start here. If knowledge flows freely, you're fine. If it's concentrated, you have work to do.
 
+> **LEADER DIAGNOSTICS**
+> - TOOL MINDSET: "How to reduce headcount for task X?" "Is it accurate enough to replace a human?"
+> - SYSTEM MINDSET: "How does this change alignment/decision-making?" "What new constraints emerge?" "Are we owning the engine or wrapping a capability?"
+
 ---
 
 ### Tribal knowledge or AI gap?
@@ -74,6 +78,11 @@ This document contains all the text content (copy) that is presented to users wh
 > **EXECUTION**  
 > Garbage in, garbage out. Invest in SOP quality now.
 
+> **SYSTEM REBUNDLING**
+> - UNBUNDLING: What tasks did AI detach from the human/asset? (e.g., Knowledge detached from Expert).
+> - NEW CONSTRAINTS: Identify the emerging bottleneck: Risk (Verification), Coordination (Journey management), or New Scarcity (Question-framing).
+> - REBUNDLING: What complementary skills must be added to the role once AI takes the production load?
+
 ---
 
 ### Team AI maturity level?
@@ -87,6 +96,21 @@ This document contains all the text content (copy) that is presented to users wh
 
 > **EXECUTION**  
 > Match distribution method to team readiness. Level up over time.
+
+> **THE INTELLIGENT HILL**
+> AI is a probability engine, not a calculator. Ask 2+2 and you get 4 always. Ask the same question to AI twice and you get different answers. Stop treating it like a lookup tool—architect your questions carefully. Climb the hill:
+> - **ZERO-SHOT**: Rolling the dice. "Give me the best business idea." Hope for luck.
+> - **ONE-SHOT**: Give one example. "Write a post about X in this style" + paste one reference. Already an upgrade.
+> - **FEW-SHOT**: Three+ examples. AI finds patterns of style, tone, substance. This is grounding—it stops hallucinating.
+> - **CHAIN-OF-THOUGHT**: Slow it down. "Think step by step. Show your work." Reduces hallucinations.
+> - **AGENTS**: "Do research on X, analyze trends, draft a memo." You're hiring a researcher + analyst + copywriter in one prompt.
+> - **PRO TIP**: Ask AI to explain the pattern back to you first. Forces articulation—and forces YOU to learn how your own brain works.
+
+> **MATURITY ARCHETYPES**
+> - REACTIVE OPTIMIZER: Efficiency focus. Same game, just faster/cheaper.
+> - ANTICIPATOR: Positioning focus. Moving to where the value is going.
+> - LOGIC SHIFTER: Re-architecture focus. Changing the logic and physics of the work.
+> - FIELD RESHAPER: Governance focus. Redefining the entire ecosystem.
 
 ---
 
@@ -104,6 +128,11 @@ This document contains all the text content (copy) that is presented to users wh
 > **EXECUTION**  
 > Transcripts are starting points. Layer in interviews for completeness.
 
+> **3-STEP ASSET ENGINE**
+> 1. **REVERSE ENGINEER "GOOD"**: Setting a benchmark from existing high-quality assets (proposals, contracts, SOPs).
+> 2. **EMBED INTO A SKILL**: Lock in aesthetics permanently (e.g., Claude Skills).
+> 3. **EMBED INTO A PROJECT**: Recurring execution with a system prompt and knowledge base.
+
 ---
 
 ### EXTRACT: REVERSE INTERVIEW
@@ -117,6 +146,9 @@ This document contains all the text content (copy) that is presented to users wh
 
 > **EXECUTION**  
 > The best extraction method when experts are available. 30-60 minutes yields gold.
+
+> **PROMPT LEVERAGE**
+> - Use terms like **"Methodically"**, **"Reverse Engineer"**, and **"Pixel Perfect"** to focus the AI.
 
 ---
 
@@ -159,6 +191,11 @@ This document contains all the text content (copy) that is presented to users wh
 
 > **EXECUTION**  
 > The sweet spot for most teams. Expert knowledge embedded in reusable AI tools.
+
+> **THE WWWW FRAMEWORK**
+> - **WHAT**: Precisely what the AI should do.
+> - **WHY**: The purpose (allows AI to infer missing context).
+> - **HOW**: Constraints (format, structure, tone).
 
 ---
 

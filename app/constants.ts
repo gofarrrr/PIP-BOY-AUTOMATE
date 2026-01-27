@@ -43,7 +43,11 @@ export const NODES: FlowNode[] = [
     description: {
       why: "EFFICIENCY AUDIT: Can a tool do the heavy lifting? A dishwasher augments dishwashing; a spellchecker augments writing. The question isn't 'automate or not'—it's 'what layer of help makes sense here?'",
       evaluate: "Can you buy a tool, build a template, or use software to cut the time in half? Look for leverage. Also consider: providers who specialize in this often have bulk pricing 10-100x better than your DIY cost. Don't build what you can buy cheaper.",
-      read: "Mid-tier decision. Leads to hybrid workflows. Small tools often beat big systems."
+      read: "Mid-tier decision. Leads to hybrid workflows. Small tools often beat big systems.",
+      tactics: [
+        { label: "THE TWO CURVES", content: "CURVE 1 (Capped Payoff): Formatting slides, internal emails, expense reports. Value flatlines after 'good enough.' Don't obsess over fonts on slides seen for 6 minutes. • CURVE 2 (Uncapped Payoff): Customer interactions, product design, pricing models. Being 1% better here solves 99% of your problems. Pour your soul into this. • THE SPLIT: Identify which curve your task lives on. Curve 1 = zone of intelligent laziness. Curve 2 = zone of obsession." },
+        { label: "SATISFICING", content: "Nobel-winning economist Herbert Simon coined Satisfice = Satisfy + Suffice. For Curve 1 tasks: stop when it's good enough. Perfection here has no upside. Beware: your brain craves dopamine from finishing ANY task—completion bias makes everything feel priority 1. Resist." }
+      ]
     }
   },
   {
@@ -229,7 +233,7 @@ export const EDGES: FlowEdge[] = [
   },
   // 8. Complex -> No -> Automate
   {
-    id: 'e8', from: 'complex', to: 'automate', label: 'No', pathType: 'curved', controlPoints: [[25, 80], [15, 140]], // Narrower sweep left
+    id: 'e8', from: 'complex', to: 'automate', label: 'No', pathType: 'curved', controlPoints: [[10, 80], [5, 130]], // Wide sweep left to avoid overlap with risk→automate
     labelPosition: 0.4,
     description: {
       why: "SIMPLE TASK DETECTED. No complexity, no brain required. But simple logic with inaccessible data is still a trap.",

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface ZoomControlsProps {
     onZoomIn: () => void;
@@ -15,7 +16,11 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     zoomLevel,
     maxLevel,
 }) => {
-    const buttonBase = `
+    const { theme } = useTheme();
+    const isCleanTheme = theme === 'clean';
+
+    // Pip-Boy mode button styles
+    const pipboyButtonBase = `
     w-10 h-10 
     flex items-center justify-center 
     text-2xl font-bold font-vt323
@@ -27,7 +32,28 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
     active:bg-[#33ff00]/40
     transition-all duration-150
     disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-black/80 disabled:hover:shadow-none
+    cursor-pointer
   `;
+
+    // Clean mode button styles
+    const cleanButtonBase = `
+    w-10 h-10 
+    flex items-center justify-center 
+    text-xl font-semibold
+    border-2 border-gray-300 
+    bg-white 
+    text-gray-700 
+    hover:bg-gray-100 
+    hover:border-gray-400
+    hover:shadow-md
+    active:bg-gray-200
+    transition-all duration-150
+    disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:shadow-none
+    cursor-pointer
+    rounded-lg
+  `;
+
+    const buttonBase = isCleanTheme ? cleanButtonBase : pipboyButtonBase;
 
     return (
         <div className="absolute bottom-6 left-6 z-50 flex flex-col gap-1">
@@ -43,7 +69,10 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
             </button>
 
             {/* Zoom Level Indicator */}
-            <div className="w-10 h-6 flex items-center justify-center text-xs font-vt323 text-[#33ff00]/70 border-x-2 border-[#33ff00]/30 bg-black/60">
+            <div className={`w-10 h-6 flex items-center justify-center text-xs ${isCleanTheme
+                    ? 'font-body text-gray-500 border-x-2 border-gray-200 bg-gray-50 rounded'
+                    : 'font-vt323 text-[#33ff00]/70 border-x-2 border-[#33ff00]/30 bg-black/60'
+                }`}>
                 {zoomLevel + 1}x
             </div>
 

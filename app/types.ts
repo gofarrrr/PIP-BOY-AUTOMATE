@@ -15,6 +15,18 @@ export interface FlowNode {
       label: string;
       content: string;
     };
+    tactics?: { label: string; content: string }[];
+    diagnostics?: { q: string; a: string }[];
+    archetypes?: { name: string; focus: string }[];
+    rebundling?: { step: string; desc: string }[];
+    asset_engine?: { step: string; desc: string }[];
+    leverage?: { term: string; reason: string }[];
+    framework?: { w: string; desc: string }[];
+    promptingHill?: {
+      intro: string;
+      levels: { name: string; desc: string }[];
+      proTip: string;
+    };
   };
 }
 
@@ -41,3 +53,5 @@ export interface FlowEdge {
 export type SelectedItem =
   | { type: 'node'; data: FlowNode }
   | { type: 'edge'; data: FlowEdge };
+
+export type ChartMode = 'task' | 'strategy' | 'knowledge';

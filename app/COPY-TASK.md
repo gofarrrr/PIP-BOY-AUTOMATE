@@ -46,6 +46,16 @@ This document contains all the text content (copy) that is presented to users wh
 > **EXECUTION**  
 > Mid-tier decision. Leads to hybrid workflows. Small tools often beat big systems.
 
+> **THE TWO CURVES**
+> - **CURVE 1 (Capped Payoff)**: Formatting slides, internal emails, expense reports. Value flatlines after 'good enough.' Don't obsess over fonts on slides seen for 6 minutes.
+> - **CURVE 2 (Uncapped Payoff)**: Customer interactions, product design, pricing models. Being 1% better here solves 99% of your problems. Pour your soul into this.
+> - **THE SPLIT**: Identify which curve your task lives on. Curve 1 = zone of intelligent laziness. Curve 2 = zone of obsession.
+
+> **SATISFICING PRINCIPLE**
+> - Nobel-winning economist Herbert Simon coined **Satisfice** = Satisfy + Suffice.
+> - For Curve 1 tasks: Stop when it's good enough. Perfection here has no upside.
+> - Your brain craves the dopamine hit of finishing *any* task—completion bias makes everything feel priority 1. Resist.
+
 ---
 
 ### Is it complex?

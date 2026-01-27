@@ -1,416 +1,185 @@
 import React, { useState, useEffect } from 'react';
+import LandingPage from './components/LandingPage';
 import Flowchart from './components/Flowchart';
 import InfoTerminal from './components/InfoTerminal';
-// WIP: Voice Interview feature - temporarily disabled
-// import InterviewMode from './components/InterviewMode';
-import BlueprintGenerator from './components/BlueprintGenerator';
-import SurvivalBlueprint from './components/SurvivalBlueprint';
-import { SelectedItem, FlowEdge } from './types';
-import type { GraphNodeId } from './types/interview';
-import { NODES, EDGES } from './constants';
+import CopyForAI from './components/CopyForAI';
+import { ThemeProvider } from './context/ThemeContext';
+import { SelectedItem, ChartMode } from './types';
 import { STRATEGY_NODES, STRATEGY_EDGES } from './constants-strategy';
+import { NODES, EDGES } from './constants';
 import { KNOWLEDGE_NODES, KNOWLEDGE_EDGES } from './constants-knowledge';
-import { useDiagnosticPath } from './hooks/useDiagnosticPath';
-import { useTaskAssessment } from './hooks/useTaskAssessment';
-import { useKnowledgePlaybook } from './hooks/useKnowledgePlaybook';
-import { useProgressiveReveal } from './hooks/useProgressiveReveal';
-import TaskNameOverlay from './components/TaskNameOverlay';
-import TaskVerdict from './components/TaskVerdict';
-import KnowledgeLifecycleHUD from './components/KnowledgeLifecycleHUD';
+import './themes/optimistic.css';
 
-type ChartMode = 'task' | 'strategy' | 'knowledge';
-
+/**
+ * Optimistic Theme App - Bold, Future-Forward Design
+ * 
+ * Uses the 'frontend-design' skill to create a visually striking interface.
+ */
 function App() {
-  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  // WIP: Voice Interview state - temporarily disabled
-  // const [isInterviewMode, setIsInterviewMode] = useState(false);
-  // const [revealedNodes, setRevealedNodes] = useState<GraphNodeId[]>([]);
-  const [chartMode, setChartMode] = useState<ChartMode>('strategy');
-  const [showBlueprint, setShowBlueprint] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+    const [chartMode, setChartMode] = useState<ChartMode>('strategy');
+    const [showLanding, setShowLanding] = useState(true);
 
-  // Diagnostic path tracking for Strategy mode
-  const {
-    recordNodeVisit,
-    recordDecision,
-    getPathSummary,
-    isComplete: diagnosticComplete,
-    isInProgress: diagnosticInProgress,
-    resetDiagnostic,
-    getProgress,
-    state: strategyState,
-  } = useDiagnosticPath();
+    // ============================================================================
+    // EASTER EGG: PIP-BOY THEME (CURRENTLY DISABLED)
+    // This easter egg activates the archived Pip-Boy terminal theme.
+    // To re-enable: uncomment the state, useEffect, and toast JSX below.
+    // Trigger: Triple-click on footer version OR navigate to ?theme=pipboy
+    // ============================================================================
+    // const [showPipBoyEasterEgg, setShowPipBoyEasterEgg] = useState(false);
+    //
+    // useEffect(() => {
+    //     const params = new URLSearchParams(window.location.search);
+    //     if (params.get('theme') === 'pipboy') {
+    //         setShowPipBoyEasterEgg(true);
+    //         const timer = setTimeout(() => setShowPipBoyEasterEgg(false), 15000);
+    //         return () => clearTimeout(timer);
+    //     }
+    // }, []);
 
-  // Task Assessment state
-  const {
-    mode: taskMode,
-    taskName,
-    setMode: setTaskAssessmentMode,
-    startAssessment,
-    recordDecision: recordTaskDecision,
-    resetAssessment: resetTaskAssessment,
-    isNodeVisited,
-    isCurrentNode,
-    isComplete: taskAssessmentComplete,
-    visitedNodes: taskVisitedNodes,
-  } = useTaskAssessment();
+    // Select the appropriate nodes and edges based on mode
+    const currentNodes = chartMode === 'strategy'
+        ? STRATEGY_NODES
+        : chartMode === 'knowledge'
+            ? KNOWLEDGE_NODES
+            : NODES;
 
-  // Auto-select current node in assessment mode
-  useEffect(() => {
-    if (chartMode === 'task' && taskMode === 'assess' && taskVisitedNodes.length > 0) {
-      const currentNodeId = taskVisitedNodes[taskVisitedNodes.length - 1];
-      const node = NODES.find(n => n.id === currentNodeId);
-      if (node && (!selectedItem || selectedItem.data.id !== currentNodeId)) {
-        setSelectedItem({ type: 'node', data: node });
-      }
-    }
-  }, [chartMode, taskMode, taskVisitedNodes, selectedItem]);
+    const currentEdges = chartMode === 'strategy'
+        ? STRATEGY_EDGES
+        : chartMode === 'knowledge'
+            ? KNOWLEDGE_EDGES
+            : EDGES;
 
-  // Knowledge Playbook state
-  const {
-    activePhase,
-    selectPhase,
-    resetPlaybook,
-    phases: knowledgePhases,
-  } = useKnowledgePlaybook();
+    const handleStart = (mode: ChartMode) => {
+        setChartMode(mode);
+        setShowLanding(false);
+    };
 
-  // Progressive Reveal for Strategy mode
-  const {
-    revealNode: revealStrategyNode,
-    resetReveal: resetStrategyReveal,
-    nodeVisibilityMap: strategyNodeVisibility,
-    edgeVisibilityMap: strategyEdgeVisibility,
-  } = useProgressiveReveal(STRATEGY_NODES, STRATEGY_EDGES, 'atoms');
+    const handleBackToLanding = () => {
+        setShowLanding(true);
+        setSelectedItem(null);
+    };
 
-  // Zoom to phase cluster when selected
-  useEffect(() => {
-    // We need a ref to the zoomToViewBox or similar if we want to zoom from here.
-    // However, the Flowchart component currently manages its own zoom.
-    // We can add a "viewBox" prop to Flowchart or a trigger.
-  }, [activePhase]);
+    return (
+        <ThemeProvider>
+            {/* ============================================================================
+                EASTER EGG TOAST (DISABLED)
+                This toast appears when the Pip-Boy easter egg is triggered.
+                To re-enable: uncomment this JSX and the state/useEffect above.
+            ============================================================================ */}
+            {/* {showPipBoyEasterEgg && (
+                <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] bg-[#0a0a0a] border-2 border-[#33ff00] text-[#33ff00] p-1 rounded shadow-[0_0_20px_rgba(51,255,0,0.3)] font-mono text-sm max-w-sm w-full">
+                    <div className="bg-[#33ff00]/10 px-4 py-2 border-b border-[#33ff00] flex justify-between items-center">
+                        <span className="font-bold flex items-center gap-2">
+                            <span className="animate-pulse">☢️</span> ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM
+                        </span>
+                    </div>
+                    <div className="p-4 space-y-3">
+                        <div className="text-xs leading-relaxed">
+                            <p>CRITICAL OVERRIDE DETECTED.</p>
+                            <p>LEGACY ARCHIVE "PIP-BOY" IS AVAILABLE FOR DEPLOYMENT.</p>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <button
+                                className="flex-1 bg-[#33ff00] text-black font-bold py-1 px-3 hover:bg-[#33ff00]/80 transition-colors"
+                                onClick={() => {
+                                    const { setTheme } = (window as any).__THEME_API__ || {};
+                                    if (setTheme) setTheme('pipboy');
+                                    setShowPipBoyEasterEgg(false);
+                                }}
+                            >
+                                [ ACTIVATE ]
+                            </button>
+                            <button
+                                className="border border-[#33ff00] py-1 px-3 hover:bg-[#33ff00]/10 transition-colors"
+                                onClick={() => setShowPipBoyEasterEgg(false)}
+                            >
+                                IGNORE
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )} */}
 
-  // Get the appropriate nodes/edges based on mode
-  const getNodesAndEdges = () => {
-    switch (chartMode) {
-      case 'task':
-        return { nodes: NODES, edges: EDGES };
-      case 'strategy':
-        return { nodes: STRATEGY_NODES, edges: STRATEGY_EDGES };
-      case 'knowledge':
-        return { nodes: KNOWLEDGE_NODES, edges: KNOWLEDGE_EDGES };
-    }
-  };
-  const { nodes: currentNodes, edges: currentEdges } = getNodesAndEdges();
 
-  const handleSelect = (item: SelectedItem) => {
-    setSelectedItem(item);
+            {showLanding ? (
+                <LandingPage onStart={handleStart} />
+            ) : (
+                <div className="theme-optimistic h-screen flex flex-col overflow-hidden">
+                    {/* Header with back button */}
+                    <header className="flex items-center justify-between px-8 py-4 border-b-2 border-primary bg-primary relative z-20"
+                        style={{ borderColor: 'var(--border-primary)', background: 'var(--bg-primary)' }}>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={handleBackToLanding}
+                                className="btn-outline py-2 px-4 text-xs"
+                                style={{ padding: '8px 16px' }}
+                            >
+                                ← Back
+                            </button>
+                            <span className="font-display text-xl font-bold">
+                                aiornot.biz
+                            </span>
+                            <div className="h-6 w-0.5 bg-primary opacity-20"></div>
+                            <span className="font-body text-sm font-semibold text-secondary uppercase tracking-wider">
+                                {chartMode === 'strategy' && 'Strategy Diagnostic'}
+                                {chartMode === 'task' && 'Task Assessment'}
+                                {chartMode === 'knowledge' && 'Knowledge Playbook'}
+                            </span>
+                        </div>
 
-    // Track diagnostic path in Strategy mode + progressive reveal
-    if (chartMode === 'strategy') {
-      if (item.type === 'node') {
-        recordNodeVisit(item.data.id);
-        revealStrategyNode(item.data.id); // Reveal the node and its adjacents
-      } else if (item.type === 'edge') {
-        const edge = item.data as FlowEdge;
-        const choice = edge.label?.toLowerCase() === 'yes' ? 'yes' : 'no';
-        recordDecision(edge.from, choice);
-        revealStrategyNode(edge.to); // Reveal the destination node
-      }
-    }
-  };
+                        <div className="flex gap-4 items-center">
+                            {/* Theme Revert for Pip-Boy mode */}
+                            <button
+                                onClick={() => {
+                                    const { setTheme } = (window as any).__THEME_API__ || {};
+                                    if (setTheme) setTheme('clean');
+                                }}
+                                className="pipboy-only border border-[#33ff00] text-[#33ff00] px-3 py-1 text-[10px] font-bold hover:bg-[#33ff00] hover:text-black transition-colors"
+                                id="header-revert-btn"
+                            >
+                                [ SYSTEM RESTORE ]
+                            </button>
+                            <div className="flex gap-2">
+                                <div className="w-3 h-3 rounded-full bg-accent border border-primary"></div>
+                                <div className="w-3 h-3 rounded-full bg-tertiary border border-primary"></div>
+                            </div>
+                        </div>
+                    </header>
 
-  const handleShowBlueprint = () => {
-    setShowBlueprint(true);
-  };
+                    <div className="flex-1 flex overflow-hidden relative">
+                        <div className="texture-grain"></div>
 
-  const handleCloseBlueprint = () => {
-    setShowBlueprint(false);
-  };
+                        {/* Flowchart Area */}
+                        <div className="flex-1 bg-secondary/50 relative" style={{ background: '#F5F5F5' }}>
+                            <Flowchart
+                                nodes={currentNodes}
+                                edges={currentEdges}
+                                onSelect={setSelectedItem}
+                                selectedItem={selectedItem}
+                            />
+                        </div>
 
-  const handleResetDiagnostic = () => {
-    resetDiagnostic();
-    resetStrategyReveal(); // Reset progressive reveal
-    setShowBlueprint(false);
-  };
+                        {/* Info Panel - Optimistic Drawer Style */}
+                        {selectedItem && (
+                            <div className="w-96 border-l-2 border-[#1E3D2F] h-full shadow-[-4px_0_0px_rgba(30,61,47,0.1)] relative z-30"
+                                style={{
+                                    background: '#FFFFFF'
+                                }}>
+                                <InfoTerminal
+                                    selectedItem={selectedItem}
+                                    onClose={() => setSelectedItem(null)}
+                                />
+                            </div>
+                        )}
+                    </div>
 
-  const handleCloseTerminal = () => {
-    // In assessment mode, closing terminal might be confusing if they haven't finished.
-    // We'll allow it but they have to click the node again to resume.
-    setSelectedItem(null);
-  };
-
-  const handleTaskDecision = (choice: 'yes' | 'no') => {
-    if (selectedItem?.type === 'node') {
-      const currentNodeId = selectedItem.data.id;
-      const choiceLabel = choice === 'yes' ? 'Yes' : 'No';
-      const edge = EDGES.find(e => e.from === currentNodeId && e.label === choiceLabel);
-
-      if (edge) {
-        recordTaskDecision(currentNodeId, choice, edge.to);
-        const nextNode = NODES.find(n => n.id === edge.to);
-        if (nextNode) {
-          setSelectedItem({ type: 'node', data: nextNode });
-        }
-      }
-    }
-  };
-
-  const handleStartTaskAssessment = (name: string) => {
-    startAssessment(name);
-    const firstNode = NODES.find(n => n.id === 'often');
-    if (firstNode) {
-      setSelectedItem({ type: 'node', data: firstNode });
-    }
-  };
-
-  const getPathOutcome = (visitedNodes: string[]): 'automate' | 'augment' | 'diy' => {
-    const lastNodeId = visitedNodes[visitedNodes.length - 1];
-    if (lastNodeId === 'automate' || lastNodeId === 'augment' || lastNodeId === 'diy') {
-      return lastNodeId as 'automate' | 'augment' | 'diy';
-    }
-    return 'augment'; // Fallback
-  };
-
-  // WIP: Voice Interview handlers - temporarily disabled
-  // const handleStartInterview = () => {
-  //   setIsInterviewMode(true);
-  //   setSelectedItem(null);
-  // };
-
-  // const handleCloseInterview = () => {
-  //   setIsInterviewMode(false);
-  // };
-
-  // const handleRevealNodes = useCallback((nodes: GraphNodeId[]) => {
-  //   setRevealedNodes(prev => {
-  //     const newNodes = nodes.filter(n => !prev.includes(n));
-  //     return newNodes.length > 0 ? [...prev, ...newNodes] : prev;
-  //   });
-  // }, []);
-
-  const handleModeChange = (mode: ChartMode) => {
-    setChartMode(mode);
-    setSelectedItem(null); // Clear selection when switching modes
-  };
-
-  // WIP: Voice Interview render - temporarily disabled
-  // if (isInterviewMode) {
-  //   return (
-  //     <InterviewMode
-  //       onClose={handleCloseInterview}
-  //       onRevealNodes={handleRevealNodes}
-  //     />
-  //   );
-  // }
-
-  return (
-    <div className="relative w-screen h-screen bg-[#0a0a0a] overflow-hidden flex flex-col">
-      {/* Background Visuals */}
-      <div className="scanlines"></div>
-      <div className="crt-flicker"></div>
-
-      {/* Decorative Border Layer */}
-      <div className="absolute inset-0 border-[16px] border-[#0a0a0a] pointer-events-none z-20 rounded-[30px]"></div>
-      <div className="absolute inset-2 border-2 border-[#33ff00] opacity-50 pointer-events-none z-20 rounded-[20px]"></div>
-
-      {/* Header / Top Bar */}
-      <header className="relative z-30 flex justify-between items-center px-6 py-2 border-b-2 border-[#33ff00]/30 bg-[#001100]/80">
-        <h1 className="text-3xl font-bold text-[#33ff00] tracking-widest glow-text">
-          PIP-BOY <span className="text-sm align-top opacity-70">Model 3000</span>
-        </h1>
-
-        {/* Chart Mode Toggle */}
-        <div className="flex items-center gap-1 bg-[#0a0a0a] border border-[#33ff00]/50 rounded-lg p-1">
-          <button
-            onClick={() => handleModeChange('strategy')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'strategy'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            STRATEGY
-          </button>
-          <button
-            onClick={() => handleModeChange('task')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'task'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            TASK
-          </button>
-          <button
-            onClick={() => handleModeChange('knowledge')}
-            className={`px-3 py-1 rounded font-vt323 text-sm transition-all ${chartMode === 'knowledge'
-              ? 'bg-[#33ff00] text-black'
-              : 'text-[#33ff00]/70 hover:text-[#33ff00] hover:bg-[#33ff00]/10'
-              }`}
-          >
-            KNOWLEDGE
-          </button>
-        </div>
-
-        <div className="hidden md:flex space-x-8 text-[#33ff00]/80 text-xl font-bold font-vt323">
-          <span>STATUS: <span className="text-[#ffb000]">ONLINE</span></span>
-          <span>RADS: <span className="text-[#ff3333]">0</span></span>
-        </div>
-      </header>
-
-      {/* Chart Mode Subtitle */}
-      <div className="relative z-30 px-6 py-1 bg-[#001100]/40 border-b border-[#33ff00]/20 flex justify-between items-center">
-        <span className="text-[#33ff00]/60 font-vt323 text-sm">
-          {chartMode === 'task' && (
-            <div className="flex items-center gap-4">
-              <span className="opacity-60">{' > '}TASK AUTOMATOR:</span>
-              <div className="flex bg-black/40 border border-[#33ff00]/30 rounded overflow-hidden">
-                <button
-                  onClick={() => {
-                    setTaskAssessmentMode('learn');
-                    resetTaskAssessment();
-                  }}
-                  className={`px-3 py-0.5 text-xs transition-all ${taskMode === 'learn' ? 'bg-[#33ff00] text-black' : 'text-[#33ff00]/60 hover:bg-[#33ff00]/10'}`}
-                >
-                  LEARN
-                </button>
-                <button
-                  onClick={() => setTaskAssessmentMode('assess')}
-                  className={`px-3 py-0.5 text-xs transition-all ${taskMode === 'assess' ? 'bg-[#33ff00] text-black' : 'text-[#33ff00]/60 hover:bg-[#33ff00]/10'}`}
-                >
-                  ASSESS
-                </button>
-              </div>
-              {taskMode === 'assess' && taskName && (
-                <span className="text-[#33ff00] animate-pulse ml-2 text-xs">
-                  [ EVALUATING: {taskName.toUpperCase()} ]
-                </span>
-              )}
-            </div>
-          )}
-          {chartMode === 'strategy' && (
-            diagnosticInProgress
-              ? `> DIAGNOSTIC IN PROGRESS: ${getProgress()}% complete. Click nodes to continue...`
-              : diagnosticComplete
-                ? '> DIAGNOSTIC COMPLETE: Your Survival Blueprint is ready!'
-                : '> AI SURVIVAL DIAGNOSTIC: Is your business built for the Bits or the Atoms?'
-          )}
-          {chartMode === 'knowledge' && '> KNOWLEDGE DISTRIBUTION: Extract, Package, Distribute expert knowledge'}
-        </span>
-        {(chartMode === 'strategy' && (diagnosticInProgress || diagnosticComplete)) && (
-          <button
-            onClick={handleResetDiagnostic}
-            className="text-[#33ff00]/50 hover:text-[#33ff00] font-vt323 text-sm"
-          >
-            [RESET]
-          </button>
-        )}
-      </div>
-
-      {/* Main Graph Area */}
-      <main className="flex-1 relative z-10 overflow-hidden">
-        <Flowchart
-          nodes={currentNodes}
-          edges={currentEdges}
-          onSelect={handleSelect}
-          selectedItem={selectedItem}
-          visitedNodes={
-            chartMode === 'task' ? taskVisitedNodes :
-              chartMode === 'strategy' ? strategyState.visitedNodes : []
-          }
-          visitedEdges={
-            chartMode === 'task' ? taskVisitedNodes.slice(0, -1).map((id, i) => {
-              const nextId = taskVisitedNodes[i + 1];
-              return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
-            }).filter(id => id !== '') :
-              chartMode === 'strategy' ? strategyState.visitedNodes.slice(0, -1).map((id, i) => {
-                const nextId = strategyState.visitedNodes[i + 1];
-                return currentEdges.find(e => e.from === id && e.to === nextId)?.id || '';
-              }).filter(id => id !== '') : []
-          }
-          currentNodeId={
-            chartMode === 'task' ? taskVisitedNodes[taskVisitedNodes.length - 1] :
-              chartMode === 'strategy' ? strategyState.visitedNodes[strategyState.visitedNodes.length - 1] : null
-          }
-          zoomArea={chartMode === 'knowledge' && activePhase ? knowledgePhases.find(p => p.id === activePhase)?.zoomTarget : null}
-          nodeVisibility={chartMode === 'strategy' ? strategyNodeVisibility : undefined}
-          edgeVisibility={chartMode === 'strategy' ? strategyEdgeVisibility : undefined}
-          startNodeId={chartMode === 'strategy' ? 'atoms' : null}
-          nodeHighlights={{}}
-        />
-      </main>
-
-      {/* Info Terminal Overlay */}
-      <InfoTerminal
-        selectedItem={selectedItem}
-        onClose={handleCloseTerminal}
-        isDiagnosticMode={chartMode === 'strategy'}
-        isAssessmentMode={chartMode === 'task' && taskMode === 'assess'}
-        onDecision={handleTaskDecision}
-      />
-
-      {/* Knowledge Lifecycle HUD */}
-      {chartMode === 'knowledge' && (
-        <KnowledgeLifecycleHUD
-          activePhase={activePhase}
-          phases={knowledgePhases}
-          onPhaseSelect={selectPhase}
-        />
-      )}
-
-      {/* Task Assessment Overlay */}
-      {chartMode === 'task' && taskMode === 'assess' && !taskName && (
-        <TaskNameOverlay
-          onStart={handleStartTaskAssessment}
-          onCancel={() => setTaskAssessmentMode('learn')}
-        />
-      )}
-
-      {/* Task Verdict - Assessment Complete */}
-      {chartMode === 'task' && taskMode === 'assess' && taskAssessmentComplete && (
-        <TaskVerdict
-          taskName={taskName}
-          outcome={getPathOutcome(taskVisitedNodes)}
-          onReset={resetTaskAssessment}
-        />
-      )}
-
-      {/* Blueprint Generator - Strategy Mode */}
-      {chartMode === 'strategy' && (
-        <BlueprintGenerator
-          isComplete={diagnosticComplete}
-          onGenerate={handleShowBlueprint}
-          pathSummary={getPathSummary()}
-        />
-      )}
-
-      {/* Survival Blueprint Modal */}
-      {showBlueprint && (
-        <SurvivalBlueprint
-          pathSummary={getPathSummary()}
-          onClose={handleCloseBlueprint}
-          onReset={handleResetDiagnostic}
-        />
-      )}
-
-      {/* WIP: Voice Interview Button - temporarily disabled
-      {chartMode === 'task' && (
-        <button
-          onClick={handleStartInterview}
-          className="absolute bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-3 bg-[#33ff00] text-black font-vt323 text-lg rounded-lg hover:bg-[#33ff00]/80 transition-all shadow-lg shadow-[#33ff00]/20 hover:shadow-[#33ff00]/40"
-        >
-          <span className="text-xl">[MIC]</span>
-          <span className="hidden md:inline">START VOICE INTERVIEW</span>
-          <span className="md:hidden">INTERVIEW</span>
-        </button>
-      )}
-      */}
-
-      {/* Footer Instructions (Only visible when no selection) */}
-      {!selectedItem && (
-        <div className="absolute bottom-6 left-28 text-[#33ff00]/60 z-30 hidden md:block animate-pulse font-vt323 text-xl">
-          {'>'} SELECT NODES OR CONNECTIONS TO BEGIN ANALYSIS...
-        </div>
-      )}
-    </div>
-  );
+                    {/* Copy for AI Button */}
+                    <CopyForAI chartMode={chartMode} />
+                </div >
+            )}
+        </ThemeProvider >
+    );
 }
 
 export default App;

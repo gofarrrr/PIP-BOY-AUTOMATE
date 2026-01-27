@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, WheelEvent } from 'react';
+import React, { useState, useCallback, useRef, WheelEvent, useEffect } from 'react';
 import { FlowNode } from '../types';
 
 export interface ViewBox {
@@ -8,10 +8,11 @@ export interface ViewBox {
     height: number;
 }
 
-// Zoom levels with corresponding viewBox widths
-const ZOOM_LEVELS = [1000, 700, 500, 350, 200]; // Level 0 = full, Level 4 = max zoom
-const DEFAULT_VIEWBOX: ViewBox = { x: 0, y: -50, width: 1000, height: 2000 };
-const ASPECT_RATIO = 2000 / 1000; // height/width ratio of the flowchart
+// Base zoom levels (as width relative to standard 100-unit grid width)
+// e.g., 100 means showing the full width (100 units * scale)
+const BASE_ZOOM_LEVELS = [100, 70, 50, 35, 20];
+const GRID_HEIGHT = 200; // The grid is roughly 200 units tall
+const ASPECT_RATIO = GRID_HEIGHT / 100; // 2.0
 
 interface UseZoomReturn {
     viewBox: ViewBox;
@@ -30,14 +31,39 @@ interface UseZoomReturn {
     isPanning: boolean;
 }
 
-export function useZoom(): UseZoomReturn {
-    const [viewBox, setViewBox] = useState<ViewBox>(DEFAULT_VIEWBOX);
+export function useZoom(isCleanTheme: boolean = false): UseZoomReturn {
+    // Grid scaling - must match GraphNode/GraphEdge logic
+    // For Optimistic theme (isCleanTheme), we increase from 14 to 22
+    // to accommodate wider dynamic node sizing.
+    const scale = isCleanTheme ? 22 : 10;
+    const prevScaleRef = useRef(scale);
+
+    // Calculate derived constants based on current scale
+    const fullWidth = 100 * scale;
+    const fullHeight = GRID_HEIGHT * scale;
+    const zoomLevels = BASE_ZOOM_LEVELS.map(level => level * scale);
+    const defaultViewBox = { x: 0, y: -5 * (scale / 10), width: fullWidth, height: fullHeight };
+
+    const [viewBox, setViewBox] = useState<ViewBox>(defaultViewBox);
     const [zoomLevel, setZoomLevel] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
     const [isPanning, setIsPanning] = useState(false);
     const animationRef = useRef<number | null>(null);
     const panStartRef = useRef<{ x: number; y: number; viewBoxX: number; viewBoxY: number } | null>(null);
-    const svgRef = useRef<SVGSVGElement | null>(null);
+
+    // Handle scale change (recalculate viewBox to maintain relative position)
+    useEffect(() => {
+        if (prevScaleRef.current !== scale) {
+            const ratio = scale / prevScaleRef.current;
+            setViewBox(prev => ({
+                x: prev.x * ratio,
+                y: prev.y * ratio,
+                width: prev.width * ratio,
+                height: prev.height * ratio
+            }));
+            prevScaleRef.current = scale;
+        }
+    }, [scale]);
 
     // Animate viewBox transition
     const animateToViewBox = useCallback((targetViewBox: ViewBox, duration = 400) => {
@@ -76,20 +102,21 @@ export function useZoom(): UseZoomReturn {
 
     // Clamp viewBox to bounds
     const clampViewBox = useCallback((vb: ViewBox): ViewBox => {
-        const maxX = Math.max(0, 1000 - vb.width);
-        const maxY = Math.max(-50, 1950 - vb.height); // -50 to 1950 range for 2000 total height
+        const maxX = Math.max(0, fullWidth - vb.width);
+        // Allow slightly more scroll breathing room
+        const maxY = Math.max(-50 * (scale / 10), (fullHeight + 50 * (scale / 10)) - vb.height);
         return {
             ...vb,
             x: Math.max(0, Math.min(vb.x, maxX)),
-            y: Math.max(-50, Math.min(vb.y, maxY)),
+            y: Math.max(-50 * (scale / 10), Math.min(vb.y, maxY)),
         };
-    }, []);
+    }, [fullWidth, fullHeight, scale]);
 
     const zoomIn = useCallback(() => {
-        const newLevel = Math.min(zoomLevel + 1, ZOOM_LEVELS.length - 1);
+        const newLevel = Math.min(zoomLevel + 1, zoomLevels.length - 1);
         if (newLevel !== zoomLevel) {
             setZoomLevel(newLevel);
-            const newWidth = ZOOM_LEVELS[newLevel];
+            const newWidth = zoomLevels[newLevel];
             const newHeight = newWidth * ASPECT_RATIO;
 
             // Zoom toward center of current view
@@ -105,13 +132,13 @@ export function useZoom(): UseZoomReturn {
 
             animateToViewBox(targetViewBox);
         }
-    }, [zoomLevel, viewBox, animateToViewBox, clampViewBox]);
+    }, [zoomLevel, viewBox, animateToViewBox, clampViewBox, zoomLevels]);
 
     const zoomOut = useCallback(() => {
         const newLevel = Math.max(zoomLevel - 1, 0);
         if (newLevel !== zoomLevel) {
             setZoomLevel(newLevel);
-            const newWidth = ZOOM_LEVELS[newLevel];
+            const newWidth = zoomLevels[newLevel];
             const newHeight = newWidth * ASPECT_RATIO;
 
             // Zoom out from center of current view
@@ -127,21 +154,21 @@ export function useZoom(): UseZoomReturn {
 
             animateToViewBox(targetViewBox);
         }
-    }, [zoomLevel, viewBox, animateToViewBox, clampViewBox]);
+    }, [zoomLevel, viewBox, animateToViewBox, clampViewBox, zoomLevels]);
 
     const resetZoom = useCallback(() => {
         setZoomLevel(0);
-        animateToViewBox(DEFAULT_VIEWBOX);
-    }, [animateToViewBox]);
+        animateToViewBox(defaultViewBox);
+    }, [animateToViewBox, defaultViewBox]);
 
     const zoomToNode = useCallback((node: FlowNode) => {
-        // Convert node position (0-100 scale) to SVG coordinates (0-1000 scale)
-        const nodeX = node.x * 10;
-        const nodeY = node.y * 10;
+        // Convert node position (0-100 scale) to SVG coordinates based on current scale
+        const nodeX = node.x * scale;
+        const nodeY = node.y * scale;
 
-        // Use zoom level 3 (width 350) for a good readable size
+        // Use zoom level 3 for a good readable size
         const targetLevel = 3;
-        const newWidth = ZOOM_LEVELS[targetLevel];
+        const newWidth = zoomLevels[targetLevel];
         const newHeight = newWidth * ASPECT_RATIO;
 
         setZoomLevel(targetLevel);
@@ -153,26 +180,26 @@ export function useZoom(): UseZoomReturn {
             height: newHeight,
         });
 
-        animateToViewBox(targetViewBox, 500); // Slightly slower for dramatic effect
-    }, [animateToViewBox, clampViewBox]);
+        animateToViewBox(targetViewBox, 500);
+    }, [animateToViewBox, clampViewBox, scale, zoomLevels]);
 
     const zoomToArea = useCallback((target: ViewBox, duration = 500) => {
         const targetViewBox = clampViewBox({
-            x: target.x * 10,
-            y: target.y * 10,
-            width: target.width * 10,
-            height: target.height * 10,
+            x: target.x * scale,
+            y: target.y * scale,
+            width: target.width * scale,
+            height: target.height * scale,
         });
 
         // Calculate appropriate zoom level based on width
-        const targetWidth = target.width * 10;
-        const closestLevel = ZOOM_LEVELS.reduce((prev, curr, idx) => {
-            return Math.abs(curr - targetWidth) < Math.abs(ZOOM_LEVELS[prev] - targetWidth) ? idx : prev;
+        const targetWidth = target.width * scale;
+        const closestLevel = zoomLevels.reduce((prev, curr, idx) => {
+            return Math.abs(curr - targetWidth) < Math.abs(zoomLevels[prev] - targetWidth) ? idx : prev;
         }, 0);
 
         setZoomLevel(closestLevel);
         animateToViewBox(targetViewBox, duration);
-    }, [animateToViewBox, clampViewBox]);
+    }, [animateToViewBox, clampViewBox, scale, zoomLevels]);
 
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();

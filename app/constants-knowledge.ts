@@ -18,7 +18,12 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "BOTTLENECK DETECTION: Your best employee is also your biggest risk. Everything that makes them great is trapped in their head. When they leave, that knowledge dies with them. This is knowledge concentration—the primary disease that mitigates an organization's ability to scale.",
             evaluate: "Identify bottlenecks: (1) Is there one person everyone goes to for a specific skill or answer? (2) Do projects stall when someone is on vacation? (3) Are new hires dependent on shadowing one 'expert' for months? If yes, knowledge is trapped.",
-            read: "Start here. If knowledge flows freely, you're fine. If it's concentrated, you have work to do."
+            read: "Start here. If knowledge flows freely, you're fine. If it's concentrated, you have work to do.",
+            diagnostics: [
+                { q: "TOOL MINDSET", a: "How to reduce headcount for task X? Is it accurate enough to replace a human?" },
+                { q: "SYSTEM MINDSET", a: "How does this change alignment/decision-making? What new constraints emerge?" },
+                { q: "MAGINOT LINE", a: "Are we making parts faster while the competition redesigns the whole system?" }
+            ]
         }
     },
 
@@ -76,7 +81,12 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "QUALITY GATE: An SOP that's 75% complete is useless for AI. Edge cases, nuances, and subtle judgment calls are where experts shine—and where incomplete SOPs fail. The AI needs the full recipe, not just the ingredients.",
             evaluate: "Test your SOP: (1) Could a new hire follow it without questions? (2) Does it cover edge cases the expert handles intuitively? (3) Did the expert validate it? If gaps exist, fill them before packaging.",
-            read: "Garbage in, garbage out. Invest in SOP quality now."
+            read: "Garbage in, garbage out. Invest in SOP quality now.",
+            rebundling: [
+                { step: "UNBUNDLING", desc: "Detach knowledge from the specific expert/asset." },
+                { step: "CONSTRAINTS", desc: "Identify the new bottleneck: Risk, Verification, or Coordination." },
+                { step: "REBUNDLING", desc: "Add complementary skills to the AI-augmented role." }
+            ]
         }
     },
     {
@@ -89,7 +99,24 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         description: {
             why: "DISTRIBUTION CALIBRATION: Not all teams are ready for autonomous AI agents. Start where your team is, not where you wish they were. Prompt libraries require manual work but teach AI fluency. Projects/Gems are semi-automated. Skills are fully autonomous.",
             evaluate: "Assess honestly: (1) LOW: Most team members rarely use AI, need hand-holding. (2) MEDIUM: Team uses ChatGPT/Claude but not systematically. (3) HIGH: Team is AI-native, comfortable with autonomous tools.",
-            read: "Match distribution method to team readiness. Level up over time."
+            read: "Match distribution method to team readiness. Level up over time.",
+            archetypes: [
+                { name: "REACTIVE OPTIMIZER", focus: "Efficiency. Same thing, just faster/cheaper." },
+                { name: "ANTICIPATOR", focus: "Positioning. Moving to where the value is going." },
+                { name: "LOGIC SHIFTER", focus: "Re-architecture. Changing the logic of the game." },
+                { name: "FIELD RESHAPER", focus: "Governance. Redefining the entire ecosystem." }
+            ],
+            promptingHill: {
+                intro: "AI is a probability engine, not a calculator. Ask 2+2 and you get 4 always. Ask the same question to AI twice and you get different answers. Stop treating it like a lookup tool—architect your questions carefully. Climb the hill:",
+                levels: [
+                    { name: "ZERO-SHOT", desc: "Rolling the dice. 'Give me the best business idea.' Hope for luck." },
+                    { name: "ONE-SHOT", desc: "Give one example. 'Write a post about X in this style' + paste one reference. Already an upgrade." },
+                    { name: "FEW-SHOT", desc: "Three+ examples. AI finds patterns of style, tone, substance. This is grounding—it stops hallucinating." },
+                    { name: "CHAIN-OF-THOUGHT", desc: "Slow it down. 'Think step by step. Show your work.' Reduces hallucinations." },
+                    { name: "AGENTS", desc: "'Do research on X, analyze trends, draft a memo.' You're hiring a researcher + analyst + copywriter in one prompt." }
+                ],
+                proTip: "Ask AI to explain the pattern back to you first. Forces articulation—and forces YOU to learn how your own brain works."
+            }
         }
     },
 
@@ -105,9 +132,14 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
             why: "TRANSCRIPT EXTRACTION: You have recordings—use them. Pass transcripts to an AI with this prompt: 'Here's a training recording transcript. Create a detailed SOP that a new employee could follow step-by-step, including edge cases and decision points mentioned.'",
             evaluate: "Pro tip: Combine transcript + interview. Give AI the transcript first: 'Here's a training. Interview me to fill gaps—ask about nuances, edge cases, and anything unclear.' This yields the highest quality SOPs.",
             read: "Transcripts are starting points. Layer in interviews for completeness.",
+            asset_engine: [
+                { step: "REVERSE ENGINEER", desc: "Set a benchmark from existing high-quality assets (proposals, contracts)." },
+                { step: "EMBED SKILL", desc: "Lock in aesthetics permanently using Claude Skills." },
+                { step: "EMBED PROJECT", desc: "Recurring execution with system prompts and knowledge base." }
+            ],
             tactic: {
-                label: "The Transcript Synthesis Prompt",
-                content: "Act as an Expert Systems Engineer. I am going to provide you with a raw transcript from a training session. Your goal is to extract the 'Genetic Knowledge' from this text and package it into a high-fidelity SOP.\n\nRequirements:\n1. Identify the 'Core Workflow'.\n2. List all 'Decision Branching' (if/then logic).\n3. Extract 'Expert Nuance' (tips, shortcuts, edge cases).\n4. Format as a Step-by-Step checklist.\n\nTranscript follows:\n[PASTE TRANSCRIPT HERE]"
+                label: "The Mining vs. Summarizing Prompt",
+                content: "You are the Knowledge Architect. Process this meeting transcript with exhaustive depth. \n\nDo not provide a generic summary. Actively hunt for:\n- Feature Ideas ('Wouldn't it be cool if...')\n- Project Sparks (New initiatives)\n- Frameworks (Ways of thinking)\n- Philosophies (Team beliefs)\n- Decisions (Explicit and implicit choices)\n\nBefore writing, plan your extractions: which project hubs need updating? Which new idea files need to be created?"
             }
         }
     },
@@ -119,12 +151,17 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         y: 85,
         color: 'yellow',
         description: {
-            why: "REVERSE AI INTERVIEW: The AI acts as a new employee interviewing the expert. Key prompt: 'Act as a new employee. Interview me to understand how I do [X]. Ask one question at a time—each answer informs your next question. At the end, create a detailed SOP.'",
-            evaluate: "Critical success factors: (1) One question at a time—prevents expert from forgetting details. (2) AI probes for edge cases. (3) AI asks 'why' not just 'what'. (4) Final output is a complete SOP.",
-            read: "The best extraction method when experts are available. 30-60 minutes yields gold.",
+            why: "REVERSE AI INTERVIEW: The AI acts as a new employee interviewing the expert. This is the fastest way to extract 'Tacit Knowledge'—the intuition and reasoning that lives in your head but you rarely write down. When you talk through a problem, you naturally include the 'why'.",
+            evaluate: "Critical success factors: (1) One question at a time. (2) AI probes for 'Tacit Knowledge' (reasoning path). (3) AI asks about uncertainties and alternatives considered. (4) Final output is a Master SOP.",
+            read: "The best extraction method for 'Mining' knowledge. 30-60 minutes of 'yapping' with an AI yields more value than years of static docs.",
+            leverage: [
+                { term: "METHODICALLY", reason: "Directs AI to follow a logical, step-by-step extraction." },
+                { term: "REVERSE ENGINEER", reason: "Focuses AI on structural logic rather than surface content." },
+                { term: "TACIT KNOWLEDGE", reason: "Directs AI to hunt for the subconscious reasoning path." }
+            ],
             tactic: {
-                label: "Reverse Interview Prompt",
-                content: "I want to extract my knowledge about [INSERT TOPIC] so that we can build an AI Agent to replace/augment me.\n\nYour Role: Act as a high-performing new hire who is hungry to learn, but also a systems analyst. \n\nTask: Interview me to understand this workflow completely.\n\nRules:\n1. Ask ONE question at a time.\n2. Wait for my answer before asking the next.\n3. Drill down into 'Judgment Calls' (e.g., 'How do you decide between X and Y?').\n4. After 10 questions or when I say 'STOP', synthesize everything into a Master SOP."
+                label: "The Tacit Knowledge Miner",
+                content: "I want to extract my subconscious reasoning about [TOPIC]. \n\nYour Role: Knowledge Architect. \n\nTask: Interview me methodically. Do not just summarize—active hunt for:\n- Implicit Decisions ('Why we DIDN'T do X')\n- Working Philosophies ('We believe Y')\n- Feature Sparks ('Wouldn't it be cool if...')\n\nRules:\n1. Ask ONE question at a time.\n2. Wait for my answer.\n3. Dig into the 'Intuition' (e.g., 'How did you know that was the right move?')."
             }
         }
     },
@@ -168,9 +205,19 @@ export const KNOWLEDGE_NODES: FlowNode[] = [
         y: 170,
         color: 'green',
         description: {
-            why: "LEVEL 2 - PROJECTS & GEMS: ChatGPT Projects, Claude Projects, Gemini Gems—preconfigured AI assistants for specific tasks. Paste your system prompt (from the SOP) + upload reference files. Users interact naturally, AI applies expert knowledge automatically.",
-            evaluate: "Setup: (1) Create Project/Gem per use case. (2) Paste system prompt with What/Why/How. (3) Upload reference files (templates, examples). (4) Test with real inputs. (5) Share with team. Medium user involvement—they use it, but it guides them.",
-            read: "The sweet spot for most teams. Expert knowledge embedded in reusable AI tools."
+            why: "LEVEL 2 - TEAM BRAIN (PROJECTS): ChatGPT Projects or Claude Projects act as your 'Team Vault'. Instead of random files, use a structured system (Inbox, Projects, Areas, Resources, Archive). Meetings update the vault state—yapping becomes documentation automatically.",
+            evaluate: "Setup: (1) Create Project per team initiative. (2) Define the 'Vault Philosophy' in the System Prompt. (3) Upload reference files as a structured network. (4) Use AI to sync vault state after every meeting.",
+            read: "The goal is 'Vault State Synchronization'. Meetings reveal new reality; the Project Hub must be updated to match.",
+            framework: [
+                { w: "INBOX", desc: "Where raw transcripts and unorganized notes land." },
+                { w: "PROJECTS", desc: "Active initiatives with specific deadlines and PRDs." },
+                { w: "AREAS", desc: "Ongoing responsibilities (Design, Infra, Marketing)." },
+                { w: "RESOURCES", desc: "Knowledge base and mental models." }
+            ],
+            tactic: {
+                label: "The AI Navigator (CLAUDE.md)",
+                content: "To make your vault agent-ready, you need a map. \n\n1. Create a `CLAUDE.md` in the root: Define the vault philosophy, folder structure, and how the AI should take notes. \n2. Add a `README.md` to every folder: Explain the specific 'Folder Philosophy' so the AI knows EXACTLY what belongs there.\n3. Context Decoration: When asking Claude to work, tell it to first load `CLAUDE.md` to understand the rules of the house."
+            }
         }
     },
     {
@@ -315,8 +362,8 @@ export const KNOWLEDGE_EDGES: FlowEdge[] = [
 
     // Packaging to Distribution
     {
-        id: 'k12', from: 'sop_complete', to: 'sop_complete', label: 'No', pathType: 'curved', controlPoints: [[35, 105]],
-        labelPosition: 0.3,
+        id: 'k12', from: 'sop_complete', to: 'sop_complete', label: 'No', pathType: 'curved', controlPoints: [[130, 108]],
+        labelPosition: 0.5,
         description: {
             why: "SOP INCOMPLETE. Gaps exist that will cause AI failures. Go back and fill them.",
             evaluate: "Reverse interview the expert on specific gaps. Don't skip this—incomplete SOPs waste everyone's time.",
@@ -378,4 +425,62 @@ export const KNOWLEDGE_NODE_LABELS: Record<string, string> = {
     projects_gems: 'Projects & Gems',
     skills: 'Claude Skills',
     no_bottleneck: 'No Bottleneck'
+};
+
+export interface TacticalKnowledge {
+    id: string;
+    title: string;
+    icon: string;
+    trigger: string;
+    concept: string;
+    warning: string;
+    advice: string;
+}
+
+export const KNOWLEDGE_TACTICAL_INSIGHTS: Record<string, TacticalKnowledge> = {
+    sommelier: {
+        id: 'sommelier',
+        title: 'THE SOMMELIER STRATEGY',
+        icon: '',
+        trigger: 'TRACK: Expert Knowledge Extraction',
+        concept: "The Sommelier solves Choice Overload. When data is cheap, value shifts to *confidence*. This requires capturing 'Tacit Knowledge'—the subconscious reasoning you only say out loud.",
+        warning: "Don't just extract the 'what'; extract the 'why' and the 'judgment' (Implicit Decisions).",
+        advice: "Ask: 'What did we decide NOT to do and why?' This captures the reasoning path that usually gets lost."
+    },
+    nurse_navigator: {
+        id: 'nurse_navigator',
+        title: 'THE NURSE NAVIGATOR',
+        icon: '',
+        trigger: 'TRACK: Knowledge Distribution',
+        concept: "The Nurse Navigator ensures 'Vault Synchronization'. The value isn't just the AI note; it's the *translation* of yapping into a structured, living project hub.",
+        warning: "Avoid 'dead' summaries. If a meeting happens, the state of the project hub must change.",
+        advice: "Use the AI to 'Active Hunt' for status updates and blockers during transcript mining to keep the vault synced with reality."
+    },
+    coordination_consensus: {
+        id: 'coordination_consensus',
+        title: 'COORDINATION W/O CONSENSUS',
+        icon: '',
+        trigger: 'TRACK: Maturity Assessment',
+        concept: "AI allows 'Coordination without Consensus' by ingesting messy, unstructured updates from everyone and aligning them automatically.",
+        warning: "Stop trying to get everyone to follow the same rigid documentation standard. They won't.",
+        advice: "Use AI to ingest voice notes and Slack threads (unstructured) and automatically update your central SOPs (structured)."
+    },
+    asset_engine: {
+        id: 'asset_engine',
+        title: '3-STEP ASSET ENGINE',
+        icon: '',
+        trigger: 'TRACK: Transcript Extraction',
+        concept: "Setting a benchmark from existing assets (Reverse Engineering) is the only way to reach 'Pixel Perfect' AI outputs.",
+        warning: "Don't write prompts from scratch. Give AI the result you want and ask it to find the path.",
+        advice: "Provide AI with MULTIPLE file formats (PDF + DOCX) of your best documents to give it more 'surface area' for reverse engineering."
+    },
+    prompt_leverage: {
+        id: 'prompt_leverage',
+        title: 'PROMPT LEVERAGE',
+        icon: '',
+        trigger: 'TRACK: Expert Interaction',
+        concept: "The specific language you use (Methodically, Reverse Engineer) unlocks advanced reasoning capabilities in top-tier models like Claude.",
+        warning: "Avoid vague instructions like 'Do a good job'. This triggers generic latent space responses.",
+        advice: "Use the term 'Methodically' to force the model to think through each step before outputting the result."
+    }
 };

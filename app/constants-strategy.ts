@@ -118,7 +118,7 @@ export const STRATEGY_NODES: FlowNode[] = [
         label: 'GET\nLEAN',
         type: 'outcome',
         x: 0,
-        y: 130,
+        y: 150,
         color: 'yellow',
         description: {
             why: "SURVIVAL MODE: You're choosing to race to the bottom—but owning that race. Cut to a 3-10 person core team. Every person must be AI-fluent. Every deliverable must leverage AI to the maximum. Your cost structure must match the startups eating your lunch.",
