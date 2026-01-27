@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
 import ManifestoPage from './components/ManifestoPage';
+import FloatingChatButton from './components/FloatingChatButton';
 import Flowchart from './components/Flowchart';
 import InfoTerminal from './components/InfoTerminal';
 import CopyForAI from './components/CopyForAI';
@@ -218,6 +219,9 @@ function App() {
                     <CopyForAI chartMode={chartMode} />
                 </div >
             )}
+
+            {/* Floating Chat Button - visible on all pages */}
+            <FloatingChatButton />
         </ThemeProvider >
     );
 }
