@@ -124,9 +124,9 @@ export const NODES: FlowNode[] = [
     y: 170,
     color: 'green',
     description: {
-      why: "SYSTEM ONLINE: The holy grail. The machine works while you sleep. Perfect for data entry, payments, or cleaning floors. But reaching this outcome doesn't mean you're done—implementation can still fail.",
-      evaluate: "Final checklist: (1) Systems connected, data accessible? (2) Team ready? (3) ROI realistic? (4) Build vs Buy—is there a provider who does this at scale with bulk API deals? They may cost less than your DIY solution, plus they handle maintenance.",
-      read: "The ultimate goal for low-risk, high-frequency, boring tasks. Run a pilot before you commit."
+      why: "SYSTEM ONLINE: The holy grail. The machine works while you sleep. Perfect for data entry, payments, or cleaning floors. But reaching this outcome doesn't mean you're done—implementation can still fail. MIT reports only 5% of AI pilots reach production. The difference? Someone must be the AI Operator—monitoring quality, updating the system, handling edge cases. Set-and-forget kills pilots.",
+      evaluate: "Final checklist: (1) Systems connected, data accessible? (2) Team ready? (3) ROI realistic? (4) Build vs Buy—is there a provider who does this at scale? (5) CRITICAL: Who is the accountable operator? If no one owns this system, it will slowly degrade and die.",
+      read: "The ultimate goal for low-risk, high-frequency, boring tasks. Run a pilot, assign an operator, then scale."
     }
   },
   {

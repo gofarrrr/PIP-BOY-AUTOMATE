@@ -42,7 +42,7 @@ export const STRATEGY_NODES: FlowNode[] = [
         y: 60,
         color: 'blue',
         description: {
-            why: "VALUE CHAIN LAYER: There are three layers of business work. Layer 1 is tokenizable cognition—drafting, analysis, coding, reports. This is collapsing toward zero cost. Layer 2 is judgment and accountability—someone has to own the outcome. Layer 3 is physical execution. If you primarily bill for Layer 1 work, you're vulnerable.",
+            why: "VALUE CHAIN LAYER: There are three layers of business work. Layer 1 is tokenizable cognition—drafting, analysis, coding, reports. This is collapsing toward zero cost. Layer 2 is judgment and accountability—someone has to own the outcome. Layer 3 is physical execution. If you primarily bill for Layer 1 work, you're vulnerable. McKinsey found that redesigning workflows for AI has the biggest EBIT impact out of 25 attributes tested.",
             evaluate: "What % of your revenue comes from deliverables (drafts, reports, code, campaigns) vs. outcomes (decisions, accountability, relationships)? If most of your billings are tied to producing cognitive work, you're selling Layer 1.",
             read: "Layer 1 is being commoditized. Layer 2 and 3 are not—yet."
         }
@@ -55,7 +55,7 @@ export const STRATEGY_NODES: FlowNode[] = [
         y: 95,
         color: 'blue',
         description: {
-            why: "SIZE TRAP ANALYSIS: The middle tier is where firms are actually in trouble. Think the marketing agency with 40 employees, the IT consultancy that's been around 15 years, the design firm with a reputation for being reliable. These firms are getting squeezed from both directions—from below by tiny AI-native teams, from above by giants with distribution advantages.",
+            why: "SIZE TRAP ANALYSIS: The middle tier is where firms are actually in trouble. Think the marketing agency with 40 employees, the IT consultancy that's been around 15 years, the design firm with a reputation for being reliable. Deloitte reports only 15% of organizations achieve significant measurable ROI from AI. PWC: 76% not seeing profit impact yet. These firms are getting squeezed from both directions—from below by tiny AI-native teams, from above by giants with distribution advantages.",
             evaluate: "Do you have 20-100 employees? Offices? Legacy costs from a pre-AI era? If yes, you're in the squeeze zone. A team of 3 with good AI tools can now produce work nearly indistinguishable from yours. Giants have distribution you can't match.",
             read: "Mid-tier is the danger zone. You must choose a direction."
         }
@@ -147,7 +147,7 @@ export const STRATEGY_NODES: FlowNode[] = [
         y: 90,
         color: 'yellow',
         description: {
-            why: "STARTUP SURVIVAL: Pure cognitive production is a depreciating asset. If your value prop is 'we use AI to produce X cheaper and faster,' you're in the commodity business. Every other AI-native startup makes the same claim. Margins will compress as models get cheaper.",
+            why: "STARTUP SURVIVAL: Pure cognitive production is a depreciating asset. If your value prop is 'we use AI to produce X cheaper and faster,' you're in the commodity business. MIT reports only 5% of AI pilots reach production. The moat isn't in the code—it's in the deployment capability. Every other AI-native startup makes the same claim. Margins will compress as models get cheaper.",
             evaluate: "Run toward defensibility: (1) Distribution—embed in workflows, create switching costs. (2) Second-layer bottlenecks—compliance, audit infrastructure, human-in-the-loop review. (3) Accountability wrappers—own the liability around AI outputs. (4) Workflow orchestration that makes you sticky.",
             read: "Build what's hard to copy. Production isn't it."
         }
@@ -173,7 +173,7 @@ export const STRATEGY_NODES: FlowNode[] = [
         y: 165,
         color: 'red',
         description: {
-            why: "WARNING: You're stuck in the middle with no viable path. You can't get lean (unwilling or unable to cut), you can't move up (no judgment to sell), and you're selling commoditized cognitive work in a contestable market. This is the squeeze that kills mid-tier firms.",
+            why: "WARNING: You're stuck in the middle with no viable path. You can't get lean (unwilling or unable to cut), you can't move up (no judgment to sell), and you're selling commoditized cognitive work in a contestable market. IBM reports 75% of AI solutions don't deliver expected ROI. The trap isn't building—it's deploying without the service layer. This is the squeeze that kills mid-tier firms.",
             evaluate: "The death trap is investing in AI to make your current model 20% more efficient. That's not enough to compete with 3-person teams. You're just dying slower. Harder truth: if you can't choose lean or up-stack, you may need to exit, merge, or niche down dramatically.",
             read: "The middle is not a strategy. Choose a direction or the market will choose for you."
         }
@@ -406,6 +406,24 @@ export const TACTICAL_INSIGHTS: Record<string, TacticalInsight> = {
         concept: "You feel safe because of your moat (distribution/regulation). But AI doesn't attack your wall; it drains the ocean around it. It changes the context so much that your wall becomes irrelevant.",
         warning: "Your moat protects you from *competitors*, not from *obsolescence*.",
         advice: "Use your safety to attack yourself. Spin out a 'Red Team' whose only job is to figure out how to make your core product unnecessary."
+    },
+    service_layer: {
+        id: 'service_layer',
+        title: 'THE SERVICE LAYER PRINCIPLE',
+        icon: '🔧',
+        trigger: 'TRACK: Digital + Production + AI-Native',
+        concept: "Even AI SaaS needs a service layer. Three pillars: Consulting (audits), Education (training), Implementation (customization). McKinsey found workflow redesign is the #1 factor for EBIT impact from AI out of 25 attributes tested.",
+        warning: "Don't confuse building the product with delivering ROI. IBM reports 75% of AI solutions fail because they skip the service layer.",
+        advice: "Add 'Forward Deployed Engineers' or 'Solution Engineers' to your model. They continuously optimize and integrate the product into each specific business. Y Combinator's top AI startups all hire for these roles."
+    },
+    ai_operator: {
+        id: 'ai_operator',
+        title: 'THE OPERATOR IMPERATIVE',
+        icon: '👤',
+        trigger: 'TRACK: Any AI Implementation',
+        concept: "AI is a 'smart intern'—it needs handholding. Without an accountable operator to monitor quality, handle edge cases, and update the system, pilots slowly degrade and die. Gartner: regular AI system assessments TRIPLE the likelihood of high-value outcomes.",
+        warning: "Set-and-forget is a death sentence. MIT reports only 5% of AI pilots reach production—the rest die from neglect.",
+        advice: "Identify or hire an 'AI Operator' for every AI initiative. This person monitors quality, is the human-in-the-loop, tightens guardrails, and keeps the system aligned with business changes."
     }
 };
 

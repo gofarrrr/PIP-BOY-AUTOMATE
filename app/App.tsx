@@ -121,11 +121,40 @@ function App() {
                                 aiornot.biz
                             </span>
                             <div className="h-6 w-0.5 bg-primary opacity-20"></div>
-                            <span className="font-body text-sm font-semibold text-secondary uppercase tracking-wider">
-                                {chartMode === 'strategy' && 'Strategy Diagnostic'}
-                                {chartMode === 'task' && 'Task Assessment'}
-                                {chartMode === 'knowledge' && 'Knowledge Playbook'}
-                            </span>
+
+                            {/* Chart Switcher Pill Tabs */}
+                            <div className="flex gap-1 bg-secondary/30 rounded-full p-1" style={{ background: 'rgba(30, 61, 47, 0.08)' }}>
+                                <button
+                                    onClick={() => setChartMode('task')}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'task'
+                                            ? 'bg-primary text-white shadow-sm'
+                                            : 'text-secondary hover:bg-primary/10'
+                                        }`}
+                                    style={chartMode === 'task' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
+                                >
+                                    Task
+                                </button>
+                                <button
+                                    onClick={() => setChartMode('strategy')}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'strategy'
+                                            ? 'bg-primary text-white shadow-sm'
+                                            : 'text-secondary hover:bg-primary/10'
+                                        }`}
+                                    style={chartMode === 'strategy' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
+                                >
+                                    Strategy
+                                </button>
+                                <button
+                                    onClick={() => setChartMode('knowledge')}
+                                    className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'knowledge'
+                                            ? 'bg-primary text-white shadow-sm'
+                                            : 'text-secondary hover:bg-primary/10'
+                                        }`}
+                                    style={chartMode === 'knowledge' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
+                                >
+                                    Knowledge
+                                </button>
+                            </div>
                         </div>
 
                         <div className="flex gap-4 items-center">

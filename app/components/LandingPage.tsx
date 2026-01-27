@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ChartMode } from '../types';
+import heroAnimationGif from '../assets/hero-animation.gif';
 import '../themes/optimistic.css';
 
 interface LandingPageProps {
@@ -59,16 +60,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                         <div className="inline-block px-4 py-1 mb-6 rounded-full border-2 border-primary bg-highlight" style={{ background: 'var(--bg-highlight)', borderColor: 'var(--border-primary)' }}>
                             <span className="font-display font-bold text-sm text-primary uppercase tracking-wide">AI Decision Framework</span>
                         </div>
-                        <h1 className="text-display-xl mb-8 text-primary">
-                            Real Impact.<br />
-                            <span style={{ color: 'var(--text-accent)' }}>No Fluff.</span>
+                        <h1 className="text-display-xl mb-6 text-primary">
+                            Your AI strategy.<br />
+                            <span style={{ color: 'var(--text-accent)' }}>Clarified in 5 minutes.</span>
                         </h1>
-                        <p className="font-body text-xl mb-10 max-w-lg leading-relaxed text-secondary" style={{ color: 'var(--text-secondary)' }}>
-                            A systematic framework to evaluate AI opportunities. Stop guessing and start deciding when to automate, augment, or protect.
+                        <p className="font-body text-xl mb-6 max-w-lg leading-relaxed text-secondary" style={{ color: 'var(--text-secondary)' }}>
+                            3 decision frameworks for SMB owners who don't have time for AI hype.
                         </p>
+                        {/* Trust Badge */}
+                        <div className="flex items-center gap-2 mb-8 text-sm font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M8 0L10 6H16L11 9.5L13 16L8 12L3 16L5 9.5L0 6H6L8 0Z" fill="var(--bg-accent)" />
+                            </svg>
+                            Based on 1,000+ executive interviews
+                        </div>
                         <div className="flex gap-4 flex-wrap">
                             <button className="btn-optimistic" onClick={() => onStart('strategy')}>
-                                Start Decision Flow
+                                Start the Diagnostic
                             </button>
                             <button className="btn-outline">
                                 Read the Manifesto
@@ -76,35 +84,86 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                         </div>
                     </div>
 
-                    {/* Abstract Hero Illustration - Woodblock Style */}
+                    {/* Remotion-rendered Hero Animation */}
                     <div className="relative h-[500px] w-full flex items-center justify-center">
-                        <svg viewBox="0 0 500 500" className="w-full h-full max-w-[500px]">
-                            {/* Background Shapes */}
-                            <circle cx="250" cy="250" r="200" fill="var(--bg-secondary)" stroke="var(--border-primary)" strokeWidth="3" />
-                            <rect x="250" y="50" width="200" height="400" fill="var(--bg-highlight)" stroke="var(--border-primary)" strokeWidth="3" rx="100" transform="rotate(15 250 250)" style={{ mixBlendMode: 'multiply' }} />
-
-                            {/* Central Element */}
-                            <rect x="150" y="150" width="200" height="200" fill="var(--bg-primary)" stroke="var(--border-primary)" strokeWidth="3" rx="20" />
-
-                            {/* Connectors */}
-                            <path d="M100 250 L150 250" stroke="var(--border-primary)" strokeWidth="3" markerEnd="url(#arrow)" />
-                            <path d="M350 250 L400 250" stroke="var(--border-primary)" strokeWidth="3" />
-                            <path d="M250 100 L250 150" stroke="var(--border-primary)" strokeWidth="3" />
-                            <path d="M250 350 L250 400" stroke="var(--border-primary)" strokeWidth="3" />
-
-                            {/* Node Icons */}
-                            <circle cx="250" cy="250" r="40" fill="var(--bg-accent)" stroke="var(--border-primary)" strokeWidth="3" />
-                            <text x="250" y="260" textAnchor="middle" fill="white" fontSize="40" fontFamily="var(--font-display)" fontWeight="bold">AI</text>
-                        </svg>
+                        <img
+                            src={heroAnimationGif}
+                            alt="AI Decision Flowchart Animation"
+                            className="max-w-[480px] w-full h-auto rounded-lg"
+                            style={{
+                                border: '2px solid var(--border-primary)',
+                                boxShadow: 'var(--shadow-hard)'
+                            }}
+                        />
                     </div>
                 </section>
 
-                {/* Features / Cards Section */}
+                {/* Problem Section - Name Their Pain */}
+                <section id="problem" className="px-8 md:px-14 py-20 border-t-2 border-primary" style={{ borderColor: 'var(--border-primary)' }}>
+                    <div className="max-w-[1440px] mx-auto">
+                        <h2 className="text-display-lg mb-12 text-center">
+                            You know AI matters.<br />
+                            <span style={{ color: 'var(--text-secondary)' }}>But you don't know where to start.</span>
+                        </h2>
+
+                        {/* Three Pain Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                            {/* Pain Card 1: Task */}
+                            <div className="p-6 border-2 border-primary bg-white" style={{ borderColor: 'var(--border-primary)', boxShadow: 'var(--shadow-hard)' }}>
+                                <div className="w-12 h-12 mb-4 rounded-lg flex items-center justify-center" style={{ background: 'var(--bg-highlight)' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2">
+                                        <path d="M9 11l3 3L22 4" />
+                                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                                    </svg>
+                                </div>
+                                <p className="font-body text-lg leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                                    "Everyone says <strong>automate everything</strong>. But <em>WHAT</em> exactly?"
+                                </p>
+                            </div>
+
+                            {/* Pain Card 2: Knowledge */}
+                            <div className="p-6 border-2 border-primary bg-white" style={{ borderColor: 'var(--border-primary)', boxShadow: 'var(--shadow-hard)' }}>
+                                <div className="w-12 h-12 mb-4 rounded-lg flex items-center justify-center" style={{ background: 'var(--bg-tertiary)' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                                    </svg>
+                                </div>
+                                <p className="font-body text-lg leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                                    "Your team's at <strong>different AI levels</strong>. Some scared, some ahead of you."
+                                </p>
+                            </div>
+
+                            {/* Pain Card 3: Strategy */}
+                            <div className="p-6 border-2 border-primary bg-white" style={{ borderColor: 'var(--border-primary)', boxShadow: 'var(--shadow-hard)' }}>
+                                <div className="w-12 h-12 mb-4 rounded-lg flex items-center justify-center" style={{ background: 'var(--bg-accent)' }}>
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 16v-4M12 8h.01" />
+                                    </svg>
+                                </div>
+                                <p className="font-body text-lg leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                                    "Consultants talk <strong>strategy</strong>. You need a <em>decision</em>."
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Kicker Line */}
+                        <div className="text-center">
+                            <p className="font-display text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                                The answer isn't another AI tool. <span style={{ color: 'var(--text-accent)' }}>It's a decision framework.</span>
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Three Flowcharts Section */}
                 <section className="px-8 md:px-14 py-20 border-t-2 border-primary" id="features" style={{ borderColor: 'var(--border-primary)' }}>
                     <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
                         <div>
-                            <h2 className="text-display-lg mb-4">Capabilities</h2>
-                            <p className="font-body text-lg text-secondary max-w-md">Tools designed to help you separate the signal from the noise.</p>
+                            <h2 className="text-display-lg mb-4">Three Flowcharts. One Clear Path.</h2>
+                            <p className="font-body text-lg text-secondary max-w-md">Each diagram answers a specific question so you walk away with a decision, not more confusion.</p>
                         </div>
                         <div className="h-0.5 flex-1 bg-border-primary mx-8 hidden md:block" style={{ background: 'var(--border-primary)' }}></div>
                         <div className="flex gap-2">
@@ -139,8 +198,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                                 </svg>
                             </div>
                             <h3 className="text-2xl font-bold mb-3">Task Assessment</h3>
-                            <p className="text-secondary leading-relaxed mb-6">Analyze daily tasks. Decide if they are worth automating, augmenting, or leaving manual.</p>
-                            <button className="btn-outline w-full text-center" onClick={() => onStart('task')}>Start Assessment</button>
+                            <p className="text-secondary leading-relaxed mb-4">"What should I <strong>automate</strong> vs. do myself?"</p>
+                            <p className="text-xs uppercase tracking-wide mb-6" style={{ color: 'var(--text-tertiary)' }}>→ Clear action per task</p>
+                            <button className="btn-outline w-full text-center" onClick={() => onStart('task')}>Take the Diagnostic →</button>
                         </div>
 
                         {/* Card 2: Strategy Diagnostic - V-shape with side outcomes */}
@@ -170,8 +230,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                                 </svg>
                             </div>
                             <h3 className="text-2xl font-bold mb-3">Strategy Diagnostic</h3>
-                            <p className="text-secondary leading-relaxed mb-6">The core framework. Determine if your problem is technical, organizational, or imaginary.</p>
-                            <button className="btn-optimistic w-full text-center" onClick={() => onStart('strategy')}>Run Diagnostic</button>
+                            <p className="text-secondary leading-relaxed mb-4">"Where does my business stand in the <strong>AI landscape</strong>?"</p>
+                            <p className="text-xs uppercase tracking-wide mb-6" style={{ color: 'var(--text-tertiary)' }}>→ Strategic positioning</p>
+                            <button className="btn-optimistic w-full text-center" onClick={() => onStart('strategy')}>Take the Diagnostic →</button>
                         </div>
 
                         {/* Card 3: Knowledge Playbook - Diamond converge to 3 outputs */}
@@ -203,9 +264,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                                     <rect x="100" y="118" width="30" height="14" rx="2" stroke="white" strokeWidth="3" fill="#D4E6B5" />
                                 </svg>
                             </div>
-                            <h3 className="text-2xl font-bold mb-3">Knowledge Playbook</h3>
-                            <p className="text-secondary leading-relaxed mb-6">Your library of tactics. Access suggested replies, tone guides, and macros.</p>
-                            <button className="btn-outline w-full text-center" onClick={() => onStart('knowledge')}>Open Playbook</button>
+                            <h3 className="text-2xl font-bold mb-3">Knowledge Distribution</h3>
+                            <p className="text-secondary leading-relaxed mb-4">"How do I distribute <strong>AI knowledge</strong> to my team?"</p>
+                            <p className="text-xs uppercase tracking-wide mb-6" style={{ color: 'var(--text-tertiary)' }}>→ Team maturity plan</p>
+                            <button className="btn-outline w-full text-center" onClick={() => onStart('knowledge')}>Take the Diagnostic →</button>
                         </div>
                     </div>
                 </section>
