@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LandingPage from './components/LandingPage';
+import ManifestoPage from './components/ManifestoPage';
 import Flowchart from './components/Flowchart';
 import InfoTerminal from './components/InfoTerminal';
 import CopyForAI from './components/CopyForAI';
@@ -19,6 +20,7 @@ function App() {
     const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
     const [chartMode, setChartMode] = useState<ChartMode>('strategy');
     const [showLanding, setShowLanding] = useState(true);
+    const [showManifesto, setShowManifesto] = useState(false);
 
     // ============================================================================
     // EASTER EGG: PIP-BOY THEME (CURRENTLY DISABLED)
@@ -53,10 +55,17 @@ function App() {
     const handleStart = (mode: ChartMode) => {
         setChartMode(mode);
         setShowLanding(false);
+        setShowManifesto(false);
+    };
+
+    const handleShowManifesto = () => {
+        setShowManifesto(true);
+        setShowLanding(false);
     };
 
     const handleBackToLanding = () => {
         setShowLanding(true);
+        setShowManifesto(false);
         setSelectedItem(null);
     };
 
@@ -102,8 +111,10 @@ function App() {
             )} */}
 
 
-            {showLanding ? (
-                <LandingPage onStart={handleStart} />
+            {showManifesto ? (
+                <ManifestoPage onBack={handleBackToLanding} />
+            ) : showLanding ? (
+                <LandingPage onStart={handleStart} onShowManifesto={handleShowManifesto} />
             ) : (
                 <div className="theme-optimistic h-screen flex flex-col overflow-hidden">
                     {/* Header with back button */}
@@ -127,8 +138,8 @@ function App() {
                                 <button
                                     onClick={() => setChartMode('task')}
                                     className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'task'
-                                            ? 'bg-primary text-white shadow-sm'
-                                            : 'text-secondary hover:bg-primary/10'
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-secondary hover:bg-primary/10'
                                         }`}
                                     style={chartMode === 'task' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
                                 >
@@ -137,8 +148,8 @@ function App() {
                                 <button
                                     onClick={() => setChartMode('strategy')}
                                     className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'strategy'
-                                            ? 'bg-primary text-white shadow-sm'
-                                            : 'text-secondary hover:bg-primary/10'
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-secondary hover:bg-primary/10'
                                         }`}
                                     style={chartMode === 'strategy' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
                                 >
@@ -147,8 +158,8 @@ function App() {
                                 <button
                                     onClick={() => setChartMode('knowledge')}
                                     className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${chartMode === 'knowledge'
-                                            ? 'bg-primary text-white shadow-sm'
-                                            : 'text-secondary hover:bg-primary/10'
+                                        ? 'bg-primary text-white shadow-sm'
+                                        : 'text-secondary hover:bg-primary/10'
                                         }`}
                                     style={chartMode === 'knowledge' ? { background: 'var(--color-accent)', color: '#fff' } : {}}
                                 >

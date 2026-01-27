@@ -5,9 +5,10 @@ import '../themes/optimistic.css';
 
 interface LandingPageProps {
     onStart: (mode: ChartMode) => void;
+    onShowManifesto: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onShowManifesto }) => {
     return (
         <div className="theme-optimistic min-h-screen relative overflow-auto flex flex-col">
             <div className="texture-grain"></div>
@@ -78,7 +79,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                             <button className="btn-optimistic" onClick={() => onStart('strategy')}>
                                 Start the Diagnostic
                             </button>
-                            <button className="btn-outline">
+                            <button className="btn-outline" onClick={onShowManifesto}>
                                 Read the Manifesto
                             </button>
                         </div>
