@@ -1,5 +1,3 @@
-import OpenAI from 'openai';
-
 // Read system prompt from file at build time (Vite will inline this)
 import systemPromptContent from '../prompts/diagnostic-system.md?raw';
 
@@ -76,31 +74,104 @@ ${transcript}
 // Full system prompt = instructions + knowledge base
 const fullSystemPrompt = systemPromptContent + '\n\n' + knowledgeBase;
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const LLM_MODEL = import.meta.env.VITE_LLM_MODEL || 'google/gemini-2.0-flash-exp:free';
-
 export interface ChatMessage {
     role: 'user' | 'assistant';
     content: string;
 }
 
 /**
- * Initialize the OpenRouter client (uses OpenAI SDK)
+ * Detect if we're in production (Vercel) or local development
  */
-function getClient() {
-    if (!OPENROUTER_API_KEY) {
+function getApiEndpoint(): string {
+    // In production, use the Edge Function
+    // In development, we'll still use direct OpenRouter calls for convenience
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        return '/api/chat';
+    }
+    // For local dev, we use direct calls (you need VITE_OPENROUTER_API_KEY in .env)
+    return 'direct';
+}
+
+/**
+ * Send a message via the secure /api/chat endpoint (production)
+ */
+async function sendViaProxy(
+    conversationHistory: ChatMessage[],
+    userMessage: string
+): Promise<string> {
+    const messages = [
+        ...conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+        })),
+        { role: 'user', content: userMessage },
+    ];
+
+    const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            messages,
+            systemPrompt: fullSystemPrompt,
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'API request failed');
+    }
+
+    const data = await response.json();
+    return data.content;
+}
+
+/**
+ * Send a message directly to OpenRouter (local development only)
+ */
+async function sendDirect(
+    conversationHistory: ChatMessage[],
+    userMessage: string
+): Promise<string> {
+    const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+    const model = import.meta.env.VITE_LLM_MODEL || 'google/gemini-2.0-flash-exp:free';
+
+    if (!apiKey) {
         throw new Error('VITE_OPENROUTER_API_KEY is not set. Please add it to your .env file.');
     }
 
-    return new OpenAI({
-        baseURL: 'https://openrouter.ai/api/v1',
-        apiKey: OPENROUTER_API_KEY,
-        defaultHeaders: {
+    const messages = [
+        { role: 'system', content: fullSystemPrompt },
+        ...conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+        })),
+        { role: 'user', content: userMessage },
+    ];
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
             'HTTP-Referer': 'https://aiornot.biz',
             'X-Title': 'AI or Not - Diagnostic Guide',
         },
-        dangerouslyAllowBrowser: true, // Required for client-side usage
+        body: JSON.stringify({
+            model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 1024,
+        }),
     });
+
+    if (!response.ok) {
+        throw new Error('OpenRouter API error');
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || '';
 }
 
 /**
@@ -110,36 +181,12 @@ export async function sendMessage(
     conversationHistory: ChatMessage[],
     userMessage: string
 ): Promise<string> {
-    const client = getClient();
+    const endpoint = getApiEndpoint();
 
-    // Build the conversation for OpenAI format
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
-        { role: 'system', content: fullSystemPrompt },
-        ...conversationHistory.map(msg => ({
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
-        })),
-        { role: 'user', content: userMessage },
-    ];
-
-    try {
-        const response = await client.chat.completions.create({
-            model: LLM_MODEL,
-            messages,
-            temperature: 0.7,
-            max_tokens: 1024,
-        });
-
-        const text = response.choices?.[0]?.message?.content;
-
-        if (!text) {
-            throw new Error('No response from AI');
-        }
-
-        return text;
-    } catch (error) {
-        console.error('OpenRouter API error:', error);
-        throw error;
+    if (endpoint === 'direct') {
+        return sendDirect(conversationHistory, userMessage);
+    } else {
+        return sendViaProxy(conversationHistory, userMessage);
     }
 }
 
@@ -147,26 +194,8 @@ export async function sendMessage(
  * Get the initial greeting from the AI
  */
 export async function getInitialGreeting(): Promise<string> {
-    const client = getClient();
-
     try {
-        const response = await client.chat.completions.create({
-            model: LLM_MODEL,
-            messages: [
-                { role: 'system', content: fullSystemPrompt },
-                { role: 'user', content: 'Start the conversation with your intro message. Remember to be warm, brief, and ask what\'s on my mind about AI.' },
-            ],
-            temperature: 0.7,
-            max_tokens: 512,
-        });
-
-        const text = response.choices?.[0]?.message?.content;
-
-        if (!text) {
-            return getFallbackGreeting();
-        }
-
-        return text;
+        return await sendMessage([], 'Start the conversation with your intro message. Remember to be warm, brief, and ask what\'s on my mind about AI.');
     } catch (error) {
         console.error('Error getting initial greeting:', error);
         return getFallbackGreeting();
