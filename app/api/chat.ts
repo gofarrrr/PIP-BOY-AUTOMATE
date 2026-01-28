@@ -65,7 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'X-Title': 'AI or Not - Diagnostic Guide',
             },
             body: JSON.stringify({
-                model: process.env.LLM_MODEL || 'x-ai/grok-beta',
+                model: process.env.LLM_MODEL || 'x-ai/grok-4.1-fast',
                 messages: fullMessages,
                 temperature: 0.7,
                 max_tokens: 1024,
