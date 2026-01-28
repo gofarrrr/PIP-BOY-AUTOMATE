@@ -60,20 +60,34 @@ const Flowchart: React.FC<FlowchartProps> = ({
         }
     }, [zoomArea, zoomToArea]);
 
-    const hasAutoZoomedRef = useRef<string | null>(null);
+    // Track if we've done the initial zoom animation
+    const hasAutoZoomedRef = useRef<boolean>(false);
+    const initialLoadRef = useRef<boolean>(true);
 
+    // Auto-zoom on initial page load:
+    // 1. Start at x1 (overview) for 800ms
+    // 2. Then animate to x4 zoom and pan to the top entry point
     useEffect(() => {
-        if (startNodeId && hasAutoZoomedRef.current !== startNodeId) {
-            const startNode = nodes.find(n => n.id === startNodeId);
-            if (startNode) {
-                hasAutoZoomedRef.current = startNodeId;
+        if (initialLoadRef.current && nodes.length > 0) {
+            initialLoadRef.current = false;
+
+            // Find the topmost "start" node (entry point)
+            // Usually it's the node with the smallest y value or one named "start"
+            const startNode = startNodeId
+                ? nodes.find(n => n.id === startNodeId)
+                : nodes.reduce((topmost, node) =>
+                    node.y < topmost.y ? node : topmost, nodes[0]);
+
+            if (startNode && !hasAutoZoomedRef.current) {
+                hasAutoZoomedRef.current = true;
+                // Wait 800ms to show the overview, then zoom to the entry point
                 const timer = setTimeout(() => {
                     zoomToNode(startNode);
-                }, 100);
+                }, 800);
                 return () => clearTimeout(timer);
             }
         }
-    }, [startNodeId, nodes, zoomToNode]);
+    }, [nodes, startNodeId, zoomToNode]);
 
     const handleNodeClick = (node: FlowNode) => {
         onSelect({ type: 'node', data: node });
