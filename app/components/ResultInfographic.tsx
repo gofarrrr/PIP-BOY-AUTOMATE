@@ -1,25 +1,39 @@
 import React, { useState } from 'react';
 
 interface ResultInfographicProps {
-    svg: string;
+    // SVG code string OR base64 image data
+    content: string;
+    // Type: 'svg' or 'image'
+    type: 'svg' | 'image';
     onClose: () => void;
 }
 
-const ResultInfographic: React.FC<ResultInfographicProps> = ({ svg, onClose }) => {
+const ResultInfographic: React.FC<ResultInfographicProps> = ({ content, type, onClose }) => {
     const [isDownloading, setIsDownloading] = useState(false);
 
     const handleDownload = () => {
         setIsDownloading(true);
         try {
-            const blob = new Blob([svg], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `ai-strategy-card-${new Date().getTime()}.svg`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            if (type === 'svg') {
+                // SVG download
+                const blob = new Blob([content], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `ai-strategy-card-${new Date().getTime()}.svg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else {
+                // Image download (base64)
+                const link = document.createElement('a');
+                link.href = content.startsWith('data:') ? content : `data:image/png;base64,${content}`;
+                link.download = `ai-strategy-card-${new Date().getTime()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
         } catch (error) {
             console.error('Download failed:', error);
         } finally {
@@ -45,10 +59,18 @@ const ResultInfographic: React.FC<ResultInfographicProps> = ({ svg, onClose }) =
 
             {/* Content area */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col items-center gap-6">
-                <div
-                    className="w-full max-w-[500px] aspect-[4/3] rounded-xl shadow-2xl overflow-hidden border-2 border-[#1E3D2F] bg-[#F9F8F6] transition-transform hover:scale-[1.02]"
-                    dangerouslySetInnerHTML={{ __html: svg }}
-                />
+                {type === 'svg' ? (
+                    <div
+                        className="w-full max-w-[500px] aspect-[16/9] rounded-xl shadow-2xl overflow-hidden border-2 border-[#1E3D2F] bg-[#F9F8F6] transition-transform hover:scale-[1.02]"
+                        dangerouslySetInnerHTML={{ __html: content }}
+                    />
+                ) : (
+                    <img
+                        src={content.startsWith('data:') ? content : `data:image/png;base64,${content}`}
+                        alt="AI Strategy Card"
+                        className="w-full max-w-[500px] rounded-xl shadow-2xl border-2 border-[#1E3D2F] transition-transform hover:scale-[1.02]"
+                    />
+                )}
 
                 <div className="text-center max-w-sm">
                     <p className="text-[#1E3D2F] font-body text-sm mb-6">
@@ -60,7 +82,7 @@ const ResultInfographic: React.FC<ResultInfographicProps> = ({ svg, onClose }) =
                         disabled={isDownloading}
                         className="w-full bg-[#FF6B4A] text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 disabled:opacity-50"
                     >
-                        {isDownloading ? 'Preparing Download...' : 'Download Card (.svg)'}
+                        {isDownloading ? 'Preparing Download...' : `Download Card (.${type === 'svg' ? 'svg' : 'png'})`}
                     </button>
                 </div>
             </div>

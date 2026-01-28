@@ -15,7 +15,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasApiKey, setHasApiKey] = useState(true);
-    const [diagnosticSvg, setDiagnosticSvg] = useState<string | null>(null);
+    const [diagnosticResult, setDiagnosticResult] = useState<{ content: string; type: 'svg' | 'image' } | null>(null);
     const [isGeneratingResult, setIsGeneratingResult] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messageCountRef = useRef(0);
@@ -111,8 +111,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
         setIsGeneratingResult(true);
         try {
             // Extract a summary and verdict from the conversation
-            // For now, we'll let the infographic API handle the heavy lifting, 
-            // but we pass the summary and a inferred verdict.
             const conversationSummary = finalMessages
                 .filter(m => m.role !== 'assistant' || !m.content.includes('Hey! I\'m here to help'))
                 .map(m => `${m.role.toUpperCase()}: ${m.content}`)
@@ -124,8 +122,8 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
             if (lastMsg.includes('AUTOMATE')) verdict = 'AUTOMATE';
             if (lastMsg.includes('PROTECT') || lastMsg.includes('HEADWIND') || lastMsg.includes('DEATH TRAP')) verdict = 'PROTECT';
 
-            const svg = await generateInfographic(conversationSummary, verdict);
-            setDiagnosticSvg(svg);
+            const result = await generateInfographic(conversationSummary, verdict);
+            setDiagnosticResult(result);
         } catch (err) {
             console.error('Infographic error:', err);
             setError('Conversation complete, but failed to generate your Strategy Card. You can still see our chat above.');
@@ -137,13 +135,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
     const handleClearChat = () => {
         localStorage.removeItem(STORAGE_KEY);
         setMessages([]);
-        setDiagnosticSvg(null);
+        setDiagnosticResult(null);
         messageCountRef.current = 0;
         initConversation();
     };
 
-    if (diagnosticSvg) {
-        return <ResultInfographic svg={diagnosticSvg} onClose={() => setDiagnosticSvg(null)} />;
+    if (diagnosticResult) {
+        return <ResultInfographic content={diagnosticResult.content} type={diagnosticResult.type} onClose={() => setDiagnosticResult(null)} />;
     }
 
     return (
@@ -209,8 +207,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
                 className="flex-1 overflow-y-auto p-4 chat-messages-container"
                 style={{ background: '#FFFFFF' }}
             >
-                {diagnosticSvg && <ResultInfographic svg={diagnosticSvg} onClose={() => setDiagnosticSvg(null)} />}
-
                 {/* API Key Warning */}
                 {!hasApiKey && (
                     <div

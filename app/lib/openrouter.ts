@@ -189,11 +189,12 @@ export async function sendMessage(
 
 /**
  * Generate a strategy infographic based on the chat summary
+ * Returns both the content (svg code or base64 image) and the type
  */
 export async function generateInfographic(
     summary: string,
     verdict: string
-): Promise<string> {
+): Promise<{ content: string; type: 'svg' | 'image' }> {
     const response = await fetch('/api/infographic', {
         method: 'POST',
         headers: {
@@ -207,7 +208,13 @@ export async function generateInfographic(
     }
 
     const data = await response.json();
-    return data.svg;
+
+    // API returns { svg, type: 'svg' } or { image, type: 'image' }
+    if (data.type === 'image' && data.image) {
+        return { content: data.image, type: 'image' };
+    } else {
+        return { content: data.svg, type: 'svg' };
+    }
 }
 
 
