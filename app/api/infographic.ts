@@ -61,8 +61,8 @@ LAYOUT REQUIREMENTS:
 
 DO NOT include any explanatory text outside the design. Generate only the infographic image.`;
 
-        // Call Gemini API for image generation
-        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`;
+        // Call Gemini 3 Pro Image API for native image generation
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${geminiKey}`;
 
         const response = await fetch(geminiEndpoint, {
             method: 'POST',
