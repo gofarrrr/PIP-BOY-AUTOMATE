@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
-import { sendMessage, getInitialGreeting, ChatMessage as ChatMessageType } from '../lib/openrouter';
+import ResultInfographic from './ResultInfographic';
+import { sendMessage, getInitialGreeting, generateInfographic, ChatMessage as ChatMessageType } from '../lib/openrouter';
 
 interface ChatPanelProps {
     onClose: () => void;
@@ -14,7 +15,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [hasApiKey, setHasApiKey] = useState(true);
+    const [diagnosticSvg, setDiagnosticSvg] = useState<string | null>(null);
+    const [isGeneratingResult, setIsGeneratingResult] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messageCountRef = useRef(0);
 
     // Scroll to bottom when messages change
     useEffect(() => {
@@ -72,12 +76,24 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
     const handleSend = async (userMessage: string) => {
         const newMessages: ChatMessageType[] = [...messages, { role: 'user', content: userMessage }];
         setMessages(newMessages);
+        messageCountRef.current += 1;
         setIsLoading(true);
         setError(null);
 
         try {
             const response = await sendMessage(messages, userMessage);
-            setMessages([...newMessages, { role: 'assistant', content: response }]);
+
+            // Check for diagnostic complete tag
+            if (response.includes('[DIAGNOSTIC_COMPLETE]')) {
+                const cleanContent = response.replace('[DIAGNOSTIC_COMPLETE]', '').trim();
+                const assistantMsg: ChatMessageType = { role: 'assistant', content: cleanContent };
+                setMessages([...newMessages, assistantMsg]);
+
+                // Automatically trigger infographic generation
+                handleGenerateStrategyCard([...newMessages, assistantMsg]);
+            } else {
+                setMessages([...newMessages, { role: 'assistant', content: response }]);
+            }
         } catch (err: any) {
             console.error('Chat error:', err);
             if (err.message?.includes('API_KEY') || err.message?.includes('401')) {
@@ -91,11 +107,44 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
         }
     };
 
+    const handleGenerateStrategyCard = async (finalMessages: ChatMessageType[]) => {
+        setIsGeneratingResult(true);
+        try {
+            // Extract a summary and verdict from the conversation
+            // For now, we'll let the infographic API handle the heavy lifting, 
+            // but we pass the summary and a inferred verdict.
+            const conversationSummary = finalMessages
+                .filter(m => m.role !== 'assistant' || !m.content.includes('Hey! I\'m here to help'))
+                .map(m => `${m.role.toUpperCase()}: ${m.content}`)
+                .join('\n');
+
+            // Look for keywords in the last assistant message to infer verdict
+            const lastMsg = finalMessages[finalMessages.length - 1].content.toUpperCase();
+            let verdict = 'AUGMENT'; // Default
+            if (lastMsg.includes('AUTOMATE')) verdict = 'AUTOMATE';
+            if (lastMsg.includes('PROTECT') || lastMsg.includes('HEADWIND') || lastMsg.includes('DEATH TRAP')) verdict = 'PROTECT';
+
+            const svg = await generateInfographic(conversationSummary, verdict);
+            setDiagnosticSvg(svg);
+        } catch (err) {
+            console.error('Infographic error:', err);
+            setError('Conversation complete, but failed to generate your Strategy Card. You can still see our chat above.');
+        } finally {
+            setIsGeneratingResult(false);
+        }
+    };
+
     const handleClearChat = () => {
         localStorage.removeItem(STORAGE_KEY);
         setMessages([]);
+        setDiagnosticSvg(null);
+        messageCountRef.current = 0;
         initConversation();
     };
+
+    if (diagnosticSvg) {
+        return <ResultInfographic svg={diagnosticSvg} onClose={() => setDiagnosticSvg(null)} />;
+    }
 
     return (
         <div className="flex flex-col h-full">
@@ -142,11 +191,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
                 </div>
             </div>
 
+            {isGeneratingResult && (
+                <div className="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+                    <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mb-6"></div>
+                    <h2 className="font-display font-bold text-2xl mb-2">ANALYSIS IN PROGRESS</h2>
+                    <p className="text-sm text-secondary opacity-70 max-w-[240px] font-mono uppercase tracking-widest">
+                        Distilling tactical insights...
+                    </p>
+                    <div className="mt-8 text-[10px] text-accent font-mono animate-pulse">
+                        {">>"} V.A.T.S. SYSTEM ACTIVE
+                    </div>
+                </div>
+            )}
+
             {/* Messages */}
             <div
                 className="flex-1 overflow-y-auto p-4 chat-messages-container"
                 style={{ background: '#FFFFFF' }}
             >
+                {diagnosticSvg && <ResultInfographic svg={diagnosticSvg} onClose={() => setDiagnosticSvg(null)} />}
+
                 {/* API Key Warning */}
                 {!hasApiKey && (
                     <div
@@ -198,7 +262,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onClose }) => {
             {/* Input */}
             <ChatInput
                 onSend={handleSend}
-                disabled={isLoading || !hasApiKey}
+                disabled={isLoading || !hasApiKey || isGeneratingResult}
                 placeholder={hasApiKey ? "Type your message..." : "API key required..."}
             />
         </div>

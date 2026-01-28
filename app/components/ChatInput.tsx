@@ -43,13 +43,15 @@ const ChatInput: React.FC<ChatInputProps> = ({
                 placeholder={placeholder}
                 disabled={disabled}
                 rows={1}
-                className="flex-1 resize-none rounded-2xl px-4 py-3 font-body text-sm md:text-base border-2 focus:outline-none focus:border-orange-500 transition-all"
+                className="flex-1 resize-none rounded-2xl px-4 py-3 font-body text-sm md:text-base border-2 transition-all"
                 style={{
                     borderColor: '#1E3D2F',
                     background: '#F9F8F6',
                     color: '#1E3D2F',
                     minHeight: '48px',
                     maxHeight: '120px',
+                    outline: 'none',
+                    boxShadow: 'none',
                 }}
                 onInput={(e) => {
                     const target = e.target as HTMLTextAreaElement;

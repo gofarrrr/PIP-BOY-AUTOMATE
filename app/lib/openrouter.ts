@@ -174,9 +174,6 @@ async function sendDirect(
     return data.choices?.[0]?.message?.content || '';
 }
 
-/**
- * Send a message to the AI Diagnostic Guide and get a response
- */
 export async function sendMessage(
     conversationHistory: ChatMessage[],
     userMessage: string
@@ -189,6 +186,30 @@ export async function sendMessage(
         return sendViaProxy(conversationHistory, userMessage);
     }
 }
+
+/**
+ * Generate a strategy infographic based on the chat summary
+ */
+export async function generateInfographic(
+    summary: string,
+    verdict: string
+): Promise<string> {
+    const response = await fetch('/api/infographic', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ summary, verdict }),
+    });
+
+    if (!response.ok) {
+        throw new Error('Failed to generate strategy card');
+    }
+
+    const data = await response.json();
+    return data.svg;
+}
+
 
 /**
  * Get the initial greeting from the AI
