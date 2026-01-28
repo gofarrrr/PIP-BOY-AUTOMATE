@@ -135,7 +135,7 @@ async function sendDirect(
     userMessage: string
 ): Promise<string> {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    const model = import.meta.env.VITE_LLM_MODEL || 'google/gemini-2.0-flash-exp:free';
+    const model = import.meta.env.VITE_LLM_MODEL || 'x-ai/grok-beta';
 
     if (!apiKey) {
         throw new Error('VITE_OPENROUTER_API_KEY is not set. Please add it to your .env file.');
