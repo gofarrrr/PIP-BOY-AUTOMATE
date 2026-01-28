@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 /**
- * Strategy Card SVG Generator
- * Uses Grok to generate artistic SVG infographics
+ * Strategy Card Generator using Gemini Native Image Generation
+ * Uses Gemini 2.0 Flash for high-quality artistic infographics
  */
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -10,9 +10,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-        return res.status(500).json({ error: 'API key not configured' });
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!geminiKey) {
+        return res.status(500).json({ error: 'Gemini API key not configured' });
     }
 
     try {
@@ -22,86 +22,103 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(400).json({ error: 'Summary and verdict are required' });
         }
 
-        // Extract key insights from summary
+        // Extract key insights from the conversation summary
         const summaryLines = summary.split('\n').filter((line: string) => line.trim().length > 10);
         const keyInsights = summaryLines.slice(-6).join('\n');
 
-        // Artistic SVG prompt
-        const svgPrompt = `Generate a visually stunning SVG infographic poster.
+        // Artistic prompt for Gemini image generation
+        const imagePrompt = `Create a stunning pop-art style infographic poster for a business strategy verdict.
 
-DIMENSIONS: width="1200" height="675" (16:9 ratio)
-
-VERDICT: ${verdict}
-
-DESIGN REQUIREMENTS:
-1. BACKGROUND: Use a full-width dark forest green (#1E3D2F) rectangle as the background
-2. TITLE BANNER: Add "aiornot.biz // STRATEGY VERDICT" at the top in cream (#F9F8F6) text
-3. MAIN VERDICT: Display "${verdict}" in MASSIVE bold coral/orange (#FF6B4A) typography (font-size 120px or larger)
-4. SUBTITLE: Add a short tagline below the verdict in cream text
-5. INSIGHTS SECTION: Create a cream (#F9F8F6) rounded rectangle panel with 3-4 bullet points in dark text
-6. TACTICAL NOTE: Add a coral-colored accent box with one punchy recommendation
-7. DECORATIVE ELEMENTS: Add some geometric shapes (circles, lines) for visual interest
-8. BRAND: Small "aiornot.biz" watermark in bottom corner
+DESIGN STYLE:
+- High-end editorial design like Wired or Bloomberg Businessweek
+- Bold, dynamic composition with strong visual hierarchy
+- Modern sans-serif typography (clean, readable)
+- Rich, saturated colors with high contrast
+- Artistic and visually striking - this should look like gallery art, not a boring PDF
 
 COLOR PALETTE (use exactly these):
-- Background: #1E3D2F (dark forest green)
-- Accent: #FF6B4A (coral/orange)
-- Light: #F9F8F6 (cream)
-- Text Dark: #1A1A1A
+- Primary: Deep Forest Green (#1E3D2F) for backgrounds
+- Accent: Vibrant Coral (#FF6B4A) for highlights and CTAs
+- Light: Warm Cream (#F9F8F6) for contrast areas
+- Sharp, clean edges and professional finish
 
-KEY INSIGHTS TO INCLUDE:
+CONTENT TO VISUALIZE:
+
+VERDICT: ${verdict}
+${verdict === 'AUTOMATE' ? '(Theme: Efficiency, robots, gears, flowing systems, speed)' : ''}
+${verdict === 'AUGMENT' ? '(Theme: Human-AI collaboration, enhancement, growth, amplification)' : ''}
+${verdict === 'PROTECT' ? '(Theme: Defense, shields, fortresses, moats, secure positioning)' : ''}
+
+KEY INSIGHTS:
 ${keyInsights}
 
-TECHNICAL REQUIREMENTS:
-- Output ONLY raw SVG code starting with <svg
-- Use viewBox="0 0 1200 675"
-- Use <rect>, <text>, <circle>, <line> elements
-- Use font-family="Arial, sans-serif"
-- Make all text readable and well-positioned
-- This should look like a premium poster, not a boring document
+LAYOUT REQUIREMENTS:
+- The word "${verdict}" should be the massive hero element (very large, bold typography)
+- Include an artistic illustration or icon representing the verdict theme
+- Add a subtle brand mark "aiornot.biz" in the corner
+- Aspect ratio: 16:9 (widescreen poster format)
+- Make it visually STUNNING - worthy of framing on a wall
 
-OUTPUT ONLY THE SVG CODE. NO MARKDOWN. NO EXPLANATION.`;
+DO NOT include any explanatory text outside the design. Generate only the infographic image.`;
 
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        // Call Gemini API for image generation
+        const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiKey}`;
+
+        const response = await fetch(geminiEndpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://aiornot.biz',
-                'X-Title': 'AI or Not - Strategy Card',
             },
             body: JSON.stringify({
-                model: process.env.LLM_MODEL || 'x-ai/grok-4.1-fast',
-                messages: [{ role: 'user', content: svgPrompt }],
-                temperature: 0.7,
+                contents: [{
+                    parts: [{
+                        text: imagePrompt
+                    }]
+                }],
+                generationConfig: {
+                    responseModalities: ["IMAGE", "TEXT"],
+                    temperature: 0.9,
+                },
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('OpenRouter API error:', errorText);
+            console.error('Gemini API error:', errorText);
             return res.status(response.status).json({ error: 'Failed to generate infographic' });
         }
 
         const data = await response.json();
-        let svgCode = data.choices?.[0]?.message?.content || '';
 
-        // Clean up any markdown formatting
-        svgCode = svgCode.replace(/```svg/gi, '').replace(/```xml/gi, '').replace(/```/g, '').trim();
-
-        // Extract just the SVG if there's extra text
-        const svgMatch = svgCode.match(/<svg[\s\S]*<\/svg>/i);
-        if (svgMatch) {
-            svgCode = svgMatch[0];
+        // Extract image from Gemini response
+        // Response structure: { candidates: [{ content: { parts: [{ inlineData: { mimeType, data } }] } }] }
+        const candidates = data.candidates;
+        if (!candidates || candidates.length === 0) {
+            console.error('No candidates in Gemini response:', data);
+            return res.status(500).json({ error: 'No image generated' });
         }
 
-        // Validate it's actually SVG
-        if (!svgCode.startsWith('<svg')) {
-            console.error('Invalid SVG response:', svgCode.substring(0, 200));
-            return res.status(500).json({ error: 'Failed to generate valid SVG' });
+        const parts = candidates[0]?.content?.parts;
+        if (!parts || parts.length === 0) {
+            console.error('No parts in Gemini response:', data);
+            return res.status(500).json({ error: 'No image data in response' });
         }
 
-        return res.status(200).json({ svg: svgCode, type: 'svg' });
+        // Find the image part
+        const imagePart = parts.find((part: any) => part.inlineData);
+        if (!imagePart || !imagePart.inlineData) {
+            console.error('No image data found in parts:', parts);
+            return res.status(500).json({ error: 'Image generation failed' });
+        }
+
+        const { mimeType, data: base64Data } = imagePart.inlineData;
+
+        // Return the base64 image
+        return res.status(200).json({
+            image: `data:${mimeType};base64,${base64Data}`,
+            type: 'image'
+        });
+
     } catch (error) {
         console.error('Infographic API error:', error);
         return res.status(500).json({ error: 'Internal server error' });
